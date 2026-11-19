@@ -1,0 +1,25 @@
+name: 상품 데이터 자동 갱신
+on:
+  schedule:
+    - cron: '*/10 * * * *'
+  workflow_dispatch:
+permissions:
+  contents: write
+  pages: write
+concurrency: refresh
+jobs:
+  refresh:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: python3 tools/refresh_snap.py
+      - name: 바뀌었으면 저장하고 사이트 다시 올리기
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          if git diff --quiet; then echo "변경 없음"; exit 0; fi
+          git config user.name "playbridge-bot"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git commit -am "상품 데이터 자동 갱신"
+          git push
+          gh api -X POST "repos/${{ github.repository }}/pages/builds" || true
