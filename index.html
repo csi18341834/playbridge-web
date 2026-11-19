@@ -353,23 +353,35 @@ function runServer(action,payload){
   }});
   window.google={script:{run:mk(null,null)}};
 })();
+/* 화면 데이터: 한 번 받은 데이터는 폰에 저장해 두고 다음부터는 바로 화면을 띄운 뒤, 최신 데이터를 뒤에서 받아 비교.
+   상품 목록·가격·품절·설정이 바뀌었으면 그때만 한 번 새로 고침 (재고 숫자만 바뀐 건 다음 방문 때 반영, 주문 때 서버가 다시 확인) */
+const BOOT_KEY='pb_boot_v1';
+function bootSig(d){try{return JSON.stringify([d.cfg,(d.products||[]).map(p=>[p.c,p.price,p.moq,p.tag,p.n,p.img,p.opts,p.opts2])])}catch(e){return ''}}
+function startApp(d){
+  d=JSON.parse(JSON.stringify(d));
+  const want=(new URLSearchParams(location.search).get('item')||'').trim().toUpperCase();   /* 상품 바로가기 ?item=코드 */
+  const hit=(d.products||[]).find(p=>String(p.c).toUpperCase()===want);
+  d.open=hit?hit.c:'';
+  d.cfg=d.cfg||{};d.cfg.url='https:\/\/playbridge.io.kr';   /* 카톡 공유 링크는 우리 도메인으로 */
+  document.getElementById('data').textContent=JSON.stringify(d);
+  const box=document.getElementById('bootMsg');if(box)box.hidden=true;
+  const s=document.createElement('script');s.textContent=document.getElementById('app').textContent;document.body.appendChild(s);
+}
+function fetchBoot(){return fetch(API_URL+'?action=bootstrap',{redirect:'follow'}).then(r=>r.json()).then(j=>{if(!j||!j.ok)throw new Error((j&&j.error)||'load');return j.data})}
 function bootApp(){
   const box=document.getElementById('bootMsg'),list=document.getElementById('list');
   if(box&&list&&box.nextSibling!==list)list.parentNode.insertBefore(box,list);   /* 안내는 상품 목록 자리에 */
+  let saved=null;try{saved=JSON.parse(localStorage.getItem(BOOT_KEY)||'null')}catch(e){}
+  if(saved&&saved.d&&Date.now()-(saved.t||0)<7*864e5){
+    startApp(saved.d);
+    fetchBoot().then(d=>{try{localStorage.setItem(BOOT_KEY,JSON.stringify({t:Date.now(),d}))}catch(e){}
+      if(bootSig(d)!==bootSig(saved.d)&&!sessionStorage.getItem('pb_rl')){try{sessionStorage.setItem('pb_rl','1')}catch(e){}location.reload()}
+    }).catch(()=>{});
+    return;
+  }
   if(box){box.hidden=false;box.innerHTML='상품을 불러오는 중입니다…'}
-  fetch(API_URL+'?action=bootstrap',{redirect:'follow'}).then(r=>r.json()).then(j=>{
-    if(!j||!j.ok)throw new Error((j&&j.error)||'load');
-    const d=j.data||{};
-    const want=(new URLSearchParams(location.search).get('item')||'').trim().toUpperCase();   /* 상품 바로가기 ?item=코드 */
-    const hit=(d.products||[]).find(p=>String(p.c).toUpperCase()===want);
-    d.open=hit?hit.c:'';
-    d.cfg=d.cfg||{};d.cfg.url='https:\/\/playbridge.io.kr';   /* 카톡 공유 링크는 우리 도메인으로 */
-    document.getElementById('data').textContent=JSON.stringify(d);
-    if(box)box.hidden=true;
-    const s=document.createElement('script');s.textContent=document.getElementById('app').textContent;document.body.appendChild(s);
-  }).catch(()=>{
-    if(box){box.hidden=false;box.innerHTML='상품을 불러오지 못했습니다.<br><button type="button" onclick="bootApp()">다시 불러오기</button>'}
-  });
+  fetchBoot().then(d=>{try{localStorage.setItem(BOOT_KEY,JSON.stringify({t:Date.now(),d}))}catch(e){}startApp(d)})
+  .catch(()=>{if(box){box.hidden=false;box.innerHTML='상품을 불러오지 못했습니다.<br><button type="button" onclick="bootApp()">다시 불러오기</button>'}});
 }
 document.addEventListener('DOMContentLoaded',bootApp);
 </script>
