@@ -11,7 +11,7 @@ jobs:
   refresh:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - run: python3 tools/refresh_snap.py
       - name: 바뀌었으면 저장하고 사이트 다시 올리기
         env:
