@@ -27,6 +27,7 @@ button{cursor:pointer}
 .ship b{background:#1d1a2b;color:#ffd23f;border-radius:8px;padding:1px 8px;white-space:nowrap}
 .rules{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px}
 .rules[hidden],.ship[hidden]{display:none}
+.flow{margin:6px 0 0;font-size:15px;font-weight:700;line-height:1.4}
 .rules span{background:rgba(29,26,43,.1);border-radius:999px;padding:3px 11px;font-size:14px;font-weight:700;white-space:nowrap}
 .acts{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:6px;margin-top:8px}
 .acts button,.acts a{min-height:42px;border-radius:12px;border:2px solid #1d1a2b;background:#fff;color:#1d1a2b;font-weight:900;font-size:15px;display:flex;align-items:center;justify-content:center;text-decoration:none;padding:0 10px;text-align:center}
@@ -286,6 +287,7 @@ textarea.f{min-height:80px;resize:vertical}
 <body>
 <header class="top"><div class="wrap">
   <h1 id="shop">플레이브릿지 인형뽑기(경품) 간편발주</h1>
+  <p class="flow">주문하신 뒤 입금해 주시면 바로 발주가 진행됩니다.</p>
   <p class="notice" id="notice" hidden></p>
   <p class="ship" id="ship" hidden></p>
   <div class="rules" id="rules" hidden></div>
