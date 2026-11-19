@@ -21,14 +21,15 @@ button,input,textarea{font:inherit;color:inherit}
 button{cursor:pointer}
 :focus-visible{outline:3px solid var(--pk);outline-offset:2px}
 .wrap{max-width:860px;margin:0 auto}
-.top{background:var(--y);color:#1d1a2b;padding:18px max(4vw,16px) 14px}
-.top h1{margin:0;font:900 clamp(26px,6vw,34px)/1.1 'Noto Sans KR',sans-serif;letter-spacing:-.02em}
+.top{background:var(--y);color:#1d1a2b;padding:12px max(4vw,16px) 10px}
+.top h1{margin:0;font:900 clamp(21px,5.4vw,30px)/1.15 'Noto Sans KR',sans-serif;letter-spacing:-.02em}
 .ship{margin:8px 0 0;font-size:17px;font-weight:700}
 .ship b{background:#1d1a2b;color:#ffd23f;border-radius:8px;padding:1px 8px;white-space:nowrap}
 .rules{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px}
+.rules[hidden],.ship[hidden]{display:none}
 .rules span{background:rgba(29,26,43,.1);border-radius:999px;padding:3px 11px;font-size:14px;font-weight:700;white-space:nowrap}
-.acts{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:8px;margin-top:12px}
-.acts button,.acts a{min-height:48px;border-radius:12px;border:2px solid #1d1a2b;background:#fff;color:#1d1a2b;font-weight:900;font-size:15px;display:flex;align-items:center;justify-content:center;text-decoration:none;padding:0 10px;text-align:center}
+.acts{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:6px;margin-top:8px}
+.acts button,.acts a{min-height:42px;border-radius:12px;border:2px solid #1d1a2b;background:#fff;color:#1d1a2b;font-weight:900;font-size:15px;display:flex;align-items:center;justify-content:center;text-decoration:none;padding:0 10px;text-align:center}
 .acts .pri{background:#1d1a2b;color:#ffd23f}
 .faq{display:grid;gap:10px;margin:12px 0 16px}
 .faq details{border:2px solid var(--line);border-radius:14px;background:var(--card);overflow:hidden}
@@ -284,13 +285,13 @@ textarea.f{min-height:80px;resize:vertical}
 <header class="top"><div class="wrap">
   <h1 id="shop">플레이브릿지 인형뽑기(경품) 간편발주</h1>
   <p class="notice" id="notice" hidden></p>
-  <p class="ship" id="ship"></p>
-  <div class="rules" id="rules"></div>
+  <p class="ship" id="ship" hidden></p>
+  <div class="rules" id="rules" hidden></div>
   <div class="acts" id="acts"></div>
 </div></header>
 
 <div class="bar"><div class="wrap">
-  <input class="search" id="q" type="search" placeholder="품목명이나 코드로 찾기 (예: 곰, KR-001)" aria-label="품목 검색">
+  <input class="search" id="q" type="search" placeholder="품목명으로 찾기" aria-label="품목 검색">
   <div class="tabs" id="tabs" role="toolbar" aria-label="분류"></div>
 </div></div>
 
@@ -858,7 +859,7 @@ function refreshSum(){
 }
 let lt=0,useSaved=false,lseq=0,pcState='',known=null,pick=null,noSaved=false,telEdit=false;
 function openForm(){
-  openPane(`<h2 id="sh">주문 확인</h2><div class="meta">${esc(shipText(false))}</div>
+  openPane(`<h2 id="sh">주문 확인</h2><div class="meta">${esc(shipText(false))} · 최소 ${won(CFG.minOrder)} · ${won(CFG.freeShip)} 이상 무료배송${CFG.shipFee>0?` (미만 ${won(CFG.shipFee)})`:''} · 계좌이체</div>
     <div class="prepay sm"><b>안내</b>원활한 물량 공급을 위해 입금 확인 후 발주 시스템으로 운영됩니다.</div>
     <div id="sumBox"></div>
     <form id="fm" novalidate>
