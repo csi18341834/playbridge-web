@@ -1,0 +1,362 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="robots" content="noindex,nofollow">
+<title>플레이브릿지 관리</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@500;700;900&display=swap" rel="stylesheet">
+<style>
+/* 관리자 화면: 이동 중 휴대폰 한 손(엄지)으로 주문 진행 단계를 넘기는 화면. 주문 페이지(index.html)와 같은 색·글꼴 */
+:root{color-scheme:light;--bg:#fffaf0;--card:#fff;--ink:#1d1a2b;--sub:#5d5872;--line:#ece4d2;--y:#ffd23f;--pk:#ff3d7f;--pk2:#ffe3ec;--ok:#0b7a4b;--soft:#f6f0ff;
+  --s0:#8a6a00;--s0b:#fff3c4;--s1:#0b7a4b;--s1b:#dff5ea;--s2:#c2410c;--s2b:#ffe8d9;--s3:#1d63b8;--s3b:#dfeeff;--s4:#6d3fd6;--s4b:#ece4ff;--s5:#1d1a2b;--s5b:#e9e7ef;--cx:#777;--cxb:#eee}
+*{box-sizing:border-box;min-width:0}
+html,body{margin:0}
+body{background:var(--bg);color:var(--ink);font:500 16px/1.5 'Noto Sans KR',system-ui,sans-serif;word-break:keep-all;overflow-wrap:anywhere;overflow-x:clip;padding-bottom:calc(90px + env(safe-area-inset-bottom))}
+body.lock{overflow:hidden}
+button,input,select,textarea{font:inherit;color:inherit}
+button{cursor:pointer}
+[hidden]{display:none!important}
+/* 로그인 */
+#login{min-height:100vh;min-height:100dvh;display:grid;place-items:center;padding:24px 16px}
+#login .box{width:100%;max-width:360px;background:var(--card);border:2px solid var(--line);border-radius:20px;padding:24px 20px;text-align:center}
+#login h1{margin:0 0 4px;font-size:22px;font-weight:900}
+#login p{margin:0 0 16px;color:var(--sub);font-size:15px}
+#pin{width:100%;min-height:56px;border:2px solid var(--ink);border-radius:14px;text-align:center;font-size:24px;font-weight:900;letter-spacing:.3em;background:#fff}
+.big{width:100%;min-height:54px;border:0;border-radius:14px;background:var(--pk);color:#fff;font-size:18px;font-weight:900;margin-top:12px}
+.big:disabled{opacity:.5}
+.err{color:#c0392b;font-weight:700;font-size:15px;min-height:1.5em;margin-top:8px}
+/* 머리 (위에 고정) */
+header{position:sticky;top:0;z-index:20;background:var(--y);padding:10px 16px 0;box-shadow:0 2px 0 rgba(0,0,0,.06)}
+.top{display:flex;align-items:center;gap:8px}
+.top h1{flex:1;margin:0;font-size:18px;font-weight:900;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.top small{font-size:12px;font-weight:700;color:var(--sub)}
+.ib{min-height:40px;padding:0 12px;border:2px solid var(--ink);border-radius:12px;background:#fff;font-size:14px;font-weight:900;white-space:nowrap}
+.sub{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:4px;margin-top:10px}
+.sub button{min-height:44px;border:0;border-radius:12px 12px 0 0;background:rgba(255,255,255,.55);font-size:14px;font-weight:900;line-height:1.2;padding:4px 2px}
+.sub button.on{background:var(--bg)}
+.bar{background:var(--bg);margin:0 -16px;padding:10px 16px 8px}
+.chips{display:flex;gap:6px;overflow-x:auto;padding-bottom:4px;scrollbar-width:none;-webkit-overflow-scrolling:touch}
+.chips::-webkit-scrollbar{display:none}
+.chip{flex:none;min-height:40px;padding:0 12px;border:2px solid var(--line);border-radius:999px;background:#fff;font-size:14px;font-weight:700;white-space:nowrap;display:flex;align-items:center;gap:6px}
+.chip b{min-width:22px;padding:0 6px;border-radius:99px;background:var(--soft);font-size:13px;text-align:center}
+.chip.on{border-color:var(--ink);background:var(--ink);color:#fff}.chip.on b{background:var(--pk);color:#fff}
+.sbox{display:flex;gap:6px;margin-top:6px}
+.sbox input{flex:1;min-height:46px;border:2px solid var(--line);border-radius:12px;padding:0 12px;background:#fff;font-size:16px}
+.sbox button{flex:none}
+main{padding:10px 16px}
+.warnpin{margin:10px 16px 0;padding:10px 12px;border-radius:12px;background:var(--pk2);color:#a3123f;font-size:14px;font-weight:700}
+/* 주문 카드 */
+.card{background:var(--card);border:2px solid var(--line);border-radius:18px;margin:0 0 12px;overflow:hidden}
+.card .hd{display:block;width:100%;border:0;background:none;text-align:left;padding:14px 14px 10px}
+.row1{display:flex;align-items:flex-start;gap:8px}
+.row1 .who{flex:1;font-size:18px;font-weight:900;line-height:1.35}
+.row1 .who small{font-size:15px;font-weight:700;color:var(--sub)}
+.badge{flex:none;padding:3px 10px;border-radius:99px;font-size:13px;font-weight:900;white-space:nowrap}
+.b0{background:var(--s0b);color:var(--s0)}.b1{background:var(--s1b);color:var(--s1)}.b2{background:var(--s2b);color:var(--s2)}.b3{background:var(--s3b);color:var(--s3)}.b4{background:var(--s4b);color:var(--s4)}.b5{background:var(--s5b);color:var(--s5)}.bx{background:var(--cxb);color:var(--cx)}
+.po{font-size:13px;color:var(--sub);font-weight:700;margin-top:2px}
+.sum{margin-top:6px;font-size:15px}
+.sum b{font-size:17px;font-weight:900}
+.req{margin-top:8px;padding:8px 10px;border-radius:10px;background:#fff3c4;border:1px solid #f1d36b;font-size:14px;font-weight:700}
+.amemo{margin-top:6px;font-size:14px;color:var(--sub);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.amemo::before{content:'📝 '}
+.inv{margin-top:6px;font-size:14px;font-weight:700;color:var(--ok)}
+.next{display:flex;gap:6px;padding:0 14px 14px}
+.next button{flex:1;min-height:56px;border:0;border-radius:14px;font-size:17px;font-weight:900;color:#fff}
+.n0{background:var(--s1)}.n1{background:var(--s2)}.n2{background:var(--s3)}.n3{background:var(--s4)}.n4{background:var(--pk)}
+.next button:disabled{opacity:.55}
+.empty{text-align:center;color:var(--sub);padding:40px 10px;font-weight:700}
+/* 상세 창 */
+#pane{position:fixed;inset:0;z-index:50;background:rgba(29,26,43,.45);display:flex;align-items:flex-end;justify-content:center}
+#pane .sheet{width:100%;max-width:560px;max-height:92vh;max-height:92dvh;background:var(--bg);border-radius:20px 20px 0 0;display:flex;flex-direction:column;overscroll-behavior:contain}
+#pane .ph{display:flex;gap:8px;align-items:flex-start;padding:14px 16px 10px;border-bottom:1px solid var(--line)}
+#pane .ph h2{flex:1;margin:0;font-size:19px;font-weight:900;line-height:1.35}
+#pane .x{flex:none;width:44px;height:44px;border:0;border-radius:12px;background:var(--soft);font-size:24px;font-weight:900;line-height:1}
+#pane .pb{overflow-y:auto;padding:12px 16px calc(24px + env(safe-area-inset-bottom));overscroll-behavior:contain}
+.sec{background:var(--card);border:2px solid var(--line);border-radius:16px;padding:12px;margin-bottom:12px}
+.sec h3{margin:0 0 8px;font-size:16px;font-weight:900}
+.stepper{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px}
+.stepper button{min-height:58px;border:2px solid var(--line);border-radius:12px;background:#fff;font-size:14px;font-weight:900;line-height:1.25;padding:4px}
+.stepper button small{display:block;font-size:11px;color:var(--sub);font-weight:700}
+.stepper button.done{background:var(--soft)}
+.stepper button.cur{border-color:var(--ink);background:var(--ink);color:#fff}.stepper button.cur small{color:#ddd}
+.cxrow{display:flex;gap:6px;margin-top:8px;align-items:center;flex-wrap:wrap}
+.cxbtn{min-height:44px;padding:0 14px;border:2px solid #d33;border-radius:12px;background:#fff;color:#c00;font-weight:900;font-size:15px}
+.cxbox{margin-top:8px;padding:10px;border-radius:12px;background:#fff0f0}
+.cxbox label{display:flex;gap:8px;align-items:center;font-weight:700;font-size:15px}
+.cxbox input{width:22px;height:22px}
+textarea{width:100%;min-height:84px;border:2px solid var(--line);border-radius:12px;padding:10px;background:#fff;font-size:16px;resize:vertical}
+.qchips{display:flex;flex-wrap:wrap;gap:6px;margin:8px 0}
+.qchips button{min-height:38px;padding:0 10px;border:1px solid var(--line);border-radius:99px;background:var(--soft);font-size:14px;font-weight:700}
+.btn{min-height:50px;padding:0 16px;border:0;border-radius:12px;background:var(--ink);color:#fff;font-size:16px;font-weight:900}
+.btn.w{width:100%}
+.btn.ghost{background:#fff;color:var(--ink);border:2px solid var(--ink)}
+.btn.pk{background:var(--pk)}
+.btn:disabled{opacity:.5}
+.cour{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:6px;margin-bottom:8px}
+.cour button{min-height:46px;border:2px solid var(--line);border-radius:12px;background:#fff;font-size:14px;font-weight:900;padding:0 2px}
+.cour button.on{border-color:var(--ink);background:var(--ink);color:#fff}
+.f{width:100%;min-height:52px;border:2px solid var(--ink);border-radius:12px;padding:0 12px;background:#fff;font-size:18px;font-weight:700;letter-spacing:.02em}
+.gap{display:grid;gap:8px;margin-top:8px}
+.items{list-style:none;margin:0;padding:0}
+.items li{display:flex;gap:8px;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--line);font-size:15px}
+.items li:last-child{border-bottom:0}
+.items li b{flex:none;white-space:nowrap}
+.op{display:block;color:var(--pk);font-weight:700;font-size:14px}
+.ps{display:block;color:var(--sub);font-size:13px}
+.kv{display:flex;justify-content:space-between;gap:8px;font-size:15px;padding:2px 0}
+.kv.t{font-size:18px;font-weight:900;border-top:2px solid var(--ink);margin-top:6px;padding-top:6px}
+.contact{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:8px}
+.contact a,.contact button{display:flex;align-items:center;justify-content:center;min-height:50px;border-radius:12px;font-weight:900;text-decoration:none;font-size:16px}
+.contact a{background:var(--ok);color:#fff}
+.contact button{border:2px solid var(--ink);background:#fff}
+.addr{font-size:15px;line-height:1.5}
+/* 합계·피킹 */
+.seg{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:10px}
+.seg button{min-height:48px;border:2px solid var(--line);border-radius:12px;background:#fff;font-weight:900;font-size:14px;line-height:1.25}
+.seg button.on{border-color:var(--ink);background:var(--ink);color:#fff}
+.agg{background:var(--card);border:2px solid var(--line);border-radius:14px;padding:10px 12px;margin-bottom:8px}
+.agg .t{display:flex;gap:8px;justify-content:space-between;align-items:flex-start}
+.agg .t span{font-weight:900;font-size:16px}
+.agg .t b{flex:none;font-size:20px;font-weight:900;color:var(--pk);white-space:nowrap}
+.agg .m{font-size:13px;color:var(--sub)}
+.tot{display:flex;justify-content:space-between;font-weight:900;font-size:17px;padding:4px 2px 10px}
+.pick li{align-items:center}
+.pick label{display:flex;gap:10px;align-items:center;flex:1}
+.pick input{width:24px;height:24px;flex:none}
+.stk{display:flex;justify-content:space-between;gap:8px;padding:10px 0;border-bottom:1px solid var(--line);font-size:15px}
+.stk>span{flex:1}.stk>b,.stk>a{flex:none;white-space:nowrap}
+.out{color:#c00}
+/* 알림 (위쪽) */
+#toast{position:fixed;left:50%;top:12px;transform:translateX(-50%);z-index:80;width:calc(100% - 24px);max-width:520px;background:var(--ink);color:#fff;border-radius:14px;padding:12px 14px;font-weight:700;font-size:15px;display:flex;gap:10px;align-items:center;box-shadow:0 6px 20px rgba(0,0,0,.25)}
+#toast span{flex:1}
+#toast button{flex:none;min-height:40px;padding:0 12px;border:0;border-radius:10px;background:var(--y);color:var(--ink);font-weight:900}
+.spin{text-align:center;padding:30px;color:var(--sub);font-weight:700}
+</style>
+</head>
+<body>
+<div id="login">
+  <div class="box">
+    <h1>플레이브릿지 관리</h1>
+    <p>주문 진행 관리 · 관리자 전용</p>
+    <input id="pin" type="password" inputmode="numeric" autocomplete="current-password" placeholder="비밀번호" aria-label="관리자 비밀번호">
+    <div class="err" id="lErr" role="alert"></div>
+    <button class="big" id="lGo" type="button">들어가기</button>
+  </div>
+</div>
+
+<div id="app" hidden>
+  <header>
+    <div class="top"><h1>주문 관리 <small id="upd"></small></h1><button class="ib" id="reload" type="button">새로고침</button><button class="ib" id="out" type="button">나가기</button></div>
+    <div class="sub" role="tablist">
+      <button type="button" data-tab="ord" class="on">주문별<br>진행관리</button>
+      <button type="button" data-tab="agg">1688 발주·<br>출고 품목합계</button>
+      <button type="button" data-tab="stk">재고·<br>입고알림</button>
+    </div>
+    <div class="bar" id="ordBar">
+      <div class="chips" id="chips"></div>
+      <div class="sbox"><input id="q" type="search" placeholder="거래처·주문자·뒷자리·발주번호" aria-label="주문 검색"></div>
+    </div>
+  </header>
+  <div class="warnpin" id="weak" hidden>관리자 비밀번호가 짧습니다. 시트 '설정' 탭의 '관리자비밀번호'를 8자리 이상으로 바꿔 주세요.</div>
+  <main id="main"><div class="spin">불러오는 중…</div></main>
+</div>
+
+<div id="pane" hidden><div class="sheet" role="dialog" aria-modal="true" aria-labelledby="pT"><div class="ph"><h2 id="pT"></h2><button class="x" type="button" id="pX" aria-label="닫기">×</button></div><div class="pb" id="pB"></div></div></div>
+<div id="toast" hidden role="status"><span id="tMsg"></span><button type="button" id="tUndo" hidden>되돌리기</button></div>
+
+<script>
+const API_URL='https://script.google.com/macros/s/AKfycbwyEpDKKX4pif4FgYtxrepxrqzmCJDM4NmHcb29SrzkMXCPEHMVAwYxdtpEuCwtFCGxyw/exec';
+const STAGES=['입금대기','입금확인(발주전)','1688발주완료','중국배송출발','한국도착(통관)','국내발송완료'],CANCEL='취소';
+const NEXT_LABEL=['입금 확인 완료','1688 발주 체크','중국배송 출발 체크','한국 도착 체크','국내 송장 입력'];
+const COURIERS=['로젠','한진','CJ대한통운','우체국'];
+const $=id=>document.getElementById(id);
+const esc=s=>String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[c]);
+const won=n=>Number(n||0).toLocaleString('ko-KR')+'원';
+const sIdx=s=>s===CANCEL?-1:STAGES.indexOf(s);
+const bCls=s=>s===CANCEL?'bx':'b'+Math.max(0,STAGES.indexOf(s));
+const store={get(k){try{return sessionStorage.getItem(k)}catch(e){return null}},set(k,v){try{v==null?sessionStorage.removeItem(k):sessionStorage.setItem(k,v)}catch(e){}}};
+let PIN=store.get('pb_admin')||'',S={orders:[],counts:{}},F='전체',Q='',TAB='ord',AGG='buy',STK=null,openPo='';
+
+/* 서버 호출 (text/plain → 사전요청 없이 Apps Script doPost) */
+function call(action,payload){
+  return fetch(API_URL,{method:'POST',body:JSON.stringify({action,payload:Object.assign({pin:PIN},payload||{})}),redirect:'follow'})
+    .then(r=>{if(!r.ok)throw new Error('서버 연결이 원활하지 않습니다. 잠시 후 다시 시도해 주세요.');return r.json()})
+    .then(j=>{if(!j||!j.ok){const m=(j&&j.error)||'처리하지 못했습니다.';if(/비밀번호/.test(m)&&action!=='adminLogin')logout(m);throw new Error(m)}return j.data});
+}
+let tT=0;
+function toast(msg,undo){$('tMsg').textContent=msg;const u=$('tUndo');u.hidden=!undo;u.onclick=()=>{$('toast').hidden=true;undo&&undo()};$('toast').hidden=false;clearTimeout(tT);tT=setTimeout(()=>$('toast').hidden=true,undo?7000:3000)}
+function copy(t,msg){const ok=()=>toast(msg||'복사되었습니다');if(navigator.clipboard&&isSecureContext)navigator.clipboard.writeText(t).then(ok,()=>fb());else fb();
+  function fb(){const a=document.createElement('textarea');a.value=t;a.setAttribute('readonly','');a.style.position='fixed';a.style.opacity='0';document.body.appendChild(a);a.select();try{document.execCommand('copy');ok()}catch(e){toast('복사하지 못했습니다')}a.remove()}}
+
+/* ---------- 로그인 ---------- */
+async function login(){
+  const p=$('pin').value.trim();if(!p){$('lErr').textContent='비밀번호를 적어주세요.';return}
+  $('lGo').disabled=true;$('lErr').textContent='';PIN=p;
+  try{const r=await call('adminLogin',{});store.set('pb_admin',p);start(r)}
+  catch(e){PIN='';$('lErr').textContent=e.message}finally{$('lGo').disabled=false}
+}
+function logout(msg){PIN='';store.set('pb_admin',null);$('app').hidden=true;$('login').hidden=false;closePane();$('pin').value='';if(msg)$('lErr').textContent=msg}
+function start(r){$('login').hidden=true;$('app').hidden=false;$('weak').hidden=!(r&&r.weakPin);load()}
+
+/* ---------- 데이터 ---------- */
+async function load(){
+  $('reload').disabled=true;
+  try{const r=await call('adminSummary',{});S=r;$('upd').textContent=r.at+' 기준';render();if(openPo)detail(openPo)}
+  catch(e){if(PIN)$('main').innerHTML=`<div class="empty">${esc(e.message)}<br><br><button class="btn" type="button" onclick="load()">다시 불러오기</button></div>`}
+  finally{$('reload').disabled=false}
+}
+function recount(){const c={전체:S.orders.length};STAGES.concat(CANCEL).forEach(s=>c[s]=0);S.orders.forEach(o=>c[o.status]=(c[o.status]||0)+1);S.counts=c}
+function putOrder(o){const i=S.orders.findIndex(x=>x.po===o.po);if(i>=0)S.orders[i]=o;else S.orders.unshift(o);recount()}
+
+/* 품명: '[캐릭터] 이름 (구성) [옵션]' → 이름 / 옵션 / 구성 */
+function nm(n){const t=String(n||''),pre=(t.match(/^\s*\[[^\]]*\]\s*/)||[''])[0],r=t.slice(pre.length),op=(r.match(/\[[^\]]*\]/g)||[]).map(x=>x.slice(1,-1)),pa=(r.replace(/\[[^\]]*\]/g,'').match(/\([^)]*\)/g)||[]),main=r.replace(/\[[^\]]*\]|\([^)]*\)/g,' ').replace(/\s+/g,' ').trim();return{main:(pre.trim()+' '+main).trim(),short:main||t,op:op.join(' · '),pa:pa.join(' ')}}
+function packOf(u){return Number((String(u).match(/(\d+)\s*(?:EA|개|입|pcs)/i)||[])[1])||1}
+
+/* ---------- 주문별 진행관리 ---------- */
+function chips(){const L=['전체'].concat(STAGES,CANCEL);$('chips').innerHTML=L.map(s=>`<button type="button" class="chip${s===F?' on':''}" data-f="${esc(s)}">${esc(s)}<b>${S.counts[s]||0}</b></button>`).join('')}
+function match(o){if(F!=='전체'&&o.status!==F)return false;if(!Q)return true;const q=Q.replace(/\s/g,'').toLowerCase();return [o.shop,o.who,o.po,o.tel.replace(/\D/g,'').slice(-4),o.tel.replace(/\D/g,'')].some(x=>String(x).replace(/\s/g,'').toLowerCase().includes(q))}
+function card(o){
+  const i=sIdx(o.status),first=nm((o.items[0]||{}).n);
+  const nextBtn=i>=0&&i<5?`<div class="next"><button type="button" class="n${i}" data-next="${esc(o.po)}">${NEXT_LABEL[i]}</button></div>`:'';
+  return `<article class="card" id="c-${esc(o.po)}">
+    <button type="button" class="hd" data-open="${esc(o.po)}" aria-label="${esc(o.shop)} 주문 자세히 보기">
+      <div class="row1"><div class="who">${esc(o.shop||'-')} <small>(${esc(o.who||'-')})</small></div><span class="badge ${bCls(o.status)}">${esc(o.status)}</span></div>
+      <div class="po">${esc(o.po)} · ${esc(o.date)}${o.changedAt?` · 변경 ${esc(o.changedAt)}`:''}</div>
+      <div class="sum">${esc(first.short)}${o.items.length>1?` 외 ${o.items.length-1}종`:''} · 총 ${o.packs}팩 · <b>${won(o.total)}</b></div>
+      ${o.memo?`<div class="req">${esc(o.memo)}</div>`:''}
+      ${o.adminMemo?`<div class="amemo">${esc(o.adminMemo.split('\n').filter(Boolean).pop())}</div>`:''}
+      ${o.invoice?`<div class="inv">🚚 ${esc(o.courier)} ${esc(o.invoice)}</div>`:''}
+    </button>${nextBtn}</article>`;
+}
+function renderOrders(){
+  chips();
+  const L=S.orders.filter(match);
+  $('main').innerHTML=L.length?L.map(card).join(''):`<div class="empty">${Q?'검색 결과가 없습니다':esc(F)+' 주문이 없습니다'}</div>`;
+}
+
+/* 단계 바꾸기 (되돌리기 지원) */
+async function setStage(po,status,extra,btn){
+  const o=S.orders.find(x=>x.po===po);if(!o)return;
+  const prev=o.status;if(btn){btn.disabled=true;btn.dataset.t=btn.textContent;btn.textContent='저장 중…'}
+  try{
+    const r=await call('adminUpdateStatus',Object.assign({po,status},extra||{}));putOrder(r.order);render();if(openPo===po)detail(po);
+    const back=r.prev;
+    toast(`${o.shop} → ${r.order.status}${r.restored&&r.restored.length?' · 재고 '+r.restored.map(x=>`${x.c} ${x.from}→${x.to}`).join(', '):''}`,
+      back!==r.order.status&&r.order.status!==STAGES[5]?()=>setStage(po,back,(extra&&extra.restoreStock)?{restoreStock:true}:{}):null);
+  }catch(e){toast(e.message);if(btn){btn.disabled=false;btn.textContent=btn.dataset.t}}
+}
+
+/* ---------- 상세 창 ---------- */
+let scrollY0=0;
+function openPane(){if($('pane').hidden){scrollY0=scrollY;document.body.classList.add('lock')}$('pane').hidden=false}
+function closePane(){if($('pane').hidden)return;$('pane').hidden=true;openPo='';document.body.classList.remove('lock');scrollTo(0,scrollY0)}
+function detail(po,focusInv){
+  const o=S.orders.find(x=>x.po===po);if(!o)return closePane();
+  openPo=po;const i=sIdx(o.status);let cour=o.courier||'';
+  $('pT').innerHTML=`${esc(o.shop)} <small style="font-size:15px;color:var(--sub)">(${esc(o.who)})</small><div class="po">${esc(o.po)} · ${esc(o.date)} <span class="badge ${bCls(o.status)}">${esc(o.status)}</span></div>`;
+  $('pB').innerHTML=`
+  <div class="sec"><h3>진행 단계 <small style="font-weight:700;color:var(--sub);font-size:13px">눌러서 바로 변경</small></h3>
+    <div class="stepper">${STAGES.map((s,k)=>`<button type="button" data-st="${k}" class="${k===i?'cur':k<i?'done':''}">${k+1}. ${esc(s.replace('(','​('))}<small>${k===i?'현재':k<i?'완료':''}</small></button>`).join('')}</div>
+    <div class="cxrow">${o.status===CANCEL?`<button class="btn ghost" type="button" id="unCx">취소 되돌리기 (입금대기로)</button>`:`<button class="cxbtn" type="button" id="cx">주문 취소</button>`}</div>
+    <div class="cxbox" id="cxBox" hidden><label><input type="checkbox" id="rst" checked> 재고 칸(숫자)도 ${o.status===CANCEL?'다시 차감':'되돌리기'}</label><button class="btn w" type="button" id="cxGo" style="margin-top:8px;background:#c00">${o.status===CANCEL?'되돌리기 확정':'취소 확정'}</button></div>
+  </div>
+  ${o.memo?`<div class="req" style="margin:0 0 12px">요청사항: ${esc(o.memo)}</div>`:''}
+  <div class="sec"><h3>관리메모 <small style="font-weight:700;color:var(--sub);font-size:13px">1688 주문번호·배대지 등</small></h3>
+    <div class="qchips">${['1688 주문번호: ','배대지 입고완료','배대지 송장: ','일부 품목 내일 출고'].map(q=>`<button type="button" data-q="${esc(q)}">${esc(q.replace(/: $/,''))}</button>`).join('')}</div>
+    <textarea id="am" placeholder="메모를 적고 저장을 누르세요">${esc(o.adminMemo)}</textarea>
+    <button class="btn w" type="button" id="amGo" style="margin-top:8px">메모 저장</button>
+  </div>
+  <div class="sec"><h3>국내 발송 (택배사·송장)</h3>
+    <div class="cour">${COURIERS.map(c=>`<button type="button" data-c="${esc(c)}" class="${c===cour?'on':''}">${esc(c)}</button>`).join('')}</div>
+    <input class="f" id="inv" inputmode="numeric" autocomplete="off" placeholder="송장번호" value="${esc(o.invoice)}" aria-label="송장번호">
+    <div class="gap"><button class="btn w pk" type="button" id="invGo">송장 저장 (국내발송완료)</button>
+    ${o.invoice?`<button class="btn w ghost" type="button" id="kakao">사장님 발송안내 카톡 멘트 복사</button>`:''}</div>
+  </div>
+  <div class="sec"><h3>품목 ${o.items.length}종 · ${o.packs}팩</h3><ul class="items">${o.items.map(t=>{const x=nm(t.n);return `<li><span>${esc(x.main)}${x.op?`<span class="op">${esc(x.op)}</span>`:''}${x.pa?`<span class="ps">${esc(x.pa)} · ${esc(t.unit)}</span>`:''}</span><b>${t.q}팩<br><small style="font-weight:700">${won(t.sum)}</small></b></li>`}).join('')}</ul>
+    <div class="kv"><span>상품</span><span>${won(o.sub)}</span></div><div class="kv"><span>배송비</span><span>${o.ship?won(o.ship):'무료'}</span></div><div class="kv t"><span>합계</span><span>${won(o.total)}</span></div></div>
+  <div class="sec"><h3>배송지 · 연락처</h3><div class="addr">${esc(o.addr||'-')}</div><div class="addr" style="margin-top:4px;font-weight:700">${esc(o.tel)}</div>
+    <div class="contact"><a href="tel:${esc(o.tel.replace(/[^0-9+]/g,''))}">📞 전화 걸기</a><button type="button" id="addrCp">주소 복사</button></div></div>`;
+  openPane();
+  const B=$('pB');
+  B.querySelectorAll('[data-st]').forEach(b=>b.addEventListener('click',()=>{const k=+b.dataset.st;if(k===i)return;
+    if(k===5&&!$('inv').value.trim()){toast('송장번호를 먼저 적어 주세요');$('inv').focus();return}
+    if(k===5&&!cour){toast('택배사를 골라 주세요');return}
+    setStage(po,STAGES[k],k===5?{courier:cour,invoice:$('inv').value.trim()}:{},b)}));
+  const cx=$('cx')||$('unCx');cx.addEventListener('click',()=>{$('cxBox').hidden=!$('cxBox').hidden});
+  $('cxGo').addEventListener('click',e=>setStage(po,o.status===CANCEL?STAGES[0]:CANCEL,{restoreStock:$('rst').checked},e.target));
+  B.querySelectorAll('[data-q]').forEach(b=>b.addEventListener('click',()=>{const a=$('am');a.value=(a.value.trim()?a.value.replace(/\s+$/,'')+'\n':'')+b.dataset.q;a.focus();a.setSelectionRange(a.value.length,a.value.length)}));
+  $('amGo').addEventListener('click',async e=>{const b=e.target;b.disabled=true;b.textContent='저장 중…';
+    try{const r=await call('adminUpdateStatus',{po,adminMemo:$('am').value});putOrder(r.order);render();toast('메모를 저장했습니다');detail(po)}catch(x){toast(x.message);b.disabled=false;b.textContent='메모 저장'}});
+  B.querySelectorAll('[data-c]').forEach(b=>b.addEventListener('click',()=>{cour=b.dataset.c;B.querySelectorAll('[data-c]').forEach(x=>x.classList.toggle('on',x===b))}));
+  $('invGo').addEventListener('click',e=>{const v=$('inv').value.trim();if(!cour){toast('택배사를 골라 주세요');return}if(!v){toast('송장번호를 적어 주세요');$('inv').focus();return}setStage(po,STAGES[5],{courier:cour,invoice:v},e.target)});
+  if($('kakao'))$('kakao').addEventListener('click',()=>copy(shipMsg(o),'발송안내 멘트를 복사했습니다. 카톡에 붙여넣어 주세요'));
+  $('addrCp').addEventListener('click',()=>copy(o.addr,'주소를 복사했습니다'));
+  if(focusInv){const f=$('inv');f.scrollIntoView({block:'center'});setTimeout(()=>f.focus(),150)}
+}
+function shipMsg(o){
+  return [`[플레이브릿지] ${o.shop} 사장님, 주문하신 상품이 발송되었습니다.`,'',`발주번호: ${o.po}`,...o.items.map(t=>`- ${nm(t.n).main}${nm(t.n).op?' ['+nm(t.n).op+']':''} ${t.q}팩`),'',
+    `택배사: ${o.courier}`,`송장번호: ${o.invoice}`,`배송조회: https://search.naver.com/search.naver?query=${encodeURIComponent(o.courier+' '+o.invoice)}`,'','이용해 주셔서 감사합니다 🙏'].join('\n');
+}
+
+/* ---------- 1688 발주·출고 품목합계 ---------- */
+function renderAgg(){
+  const buy=S.orders.filter(o=>o.status===STAGES[1]),pick=S.orders.filter(o=>o.status===STAGES[4]);
+  let h=`<div class="seg"><button type="button" data-agg="buy" class="${AGG==='buy'?'on':''}">1688 발주용<br><small>입금확인(발주전) ${buy.length}건</small></button><button type="button" data-agg="pick" class="${AGG==='pick'?'on':''}">국내 포장용<br><small>한국도착(통관) ${pick.length}건</small></button></div>`;
+  if(AGG==='buy'){
+    const m={};buy.forEach(o=>o.items.forEach(t=>{const x=nm(t.n),k=t.c+'|'+x.op;if(!m[k])m[k]={c:t.c,name:x.main,op:x.op,pa:x.pa,pack:packOf(t.unit),q:0,orders:new Set()};m[k].q+=t.q;m[k].orders.add(o.shop)}));
+    const L=Object.values(m).sort((a,b)=>a.c.localeCompare(b.c)||a.op.localeCompare(b.op));
+    const tq=L.reduce((a,b)=>a+b.q,0),tp=L.reduce((a,b)=>a+b.q*b.pack,0);
+    h+=buy.length?`<button class="btn w pk" type="button" id="bulk">발주전 주문 ${buy.length}건 전체 '1688발주완료'로 일괄 변경</button>
+      <div class="tot" style="margin-top:12px"><span>상품 ${L.length}종</span><span>${tq}팩 · ${tp.toLocaleString()}개</span></div>
+      ${L.map(a=>`<div class="agg"><div class="t"><span>${esc(a.name)}${a.op?`<span class="op">${esc(a.op)}</span>`:''}</span><b>${a.q}팩</b></div><div class="m">${esc(a.c)} · ${a.pack}개입 → <b>${(a.q*a.pack).toLocaleString()}개</b> · ${esc([...a.orders].join(', '))}</div></div>`).join('')}
+      <button class="btn w ghost" type="button" id="aggCp">합계 목록 복사</button>`:`<div class="empty">입금확인(발주전) 주문이 없습니다</div>`;
+    $('main').innerHTML=h;
+    if($('bulk'))$('bulk').addEventListener('click',async e=>{if(!confirm(`발주전 주문 ${buy.length}건을 모두 '1688발주완료'로 바꿀까요?`))return;const b=e.target;b.disabled=true;b.textContent='바꾸는 중…';
+      try{const r=await call('adminBulkStatus',{from:STAGES[1],to:STAGES[2]});toast(`${r.count}건을 1688발주완료로 바꿨습니다`);await load()}catch(x){toast(x.message);b.disabled=false}});
+    if($('aggCp'))$('aggCp').addEventListener('click',()=>copy(['[1688 발주 합계]',...L.map(a=>`${a.c} ${a.name}${a.op?' ['+a.op+']':''} : ${a.q}팩 (${a.q*a.pack}개)`),`합계 ${tq}팩 / ${tp}개`].join('\n'),'합계 목록을 복사했습니다'));
+  }else{
+    h+=pick.length?pick.map(o=>`<div class="sec"><h3>${esc(o.shop)} <small style="color:var(--sub)">(${esc(o.who)}) · ${esc(o.po)}</small></h3><div class="addr" style="margin-bottom:6px">${esc(o.addr)}</div>
+      <ul class="items pick">${o.items.map((t,k)=>{const x=nm(t.n);return `<li><label><input type="checkbox" data-pk="${esc(o.po)}-${k}"><span>${esc(x.main)}${x.op?`<span class="op">${esc(x.op)}</span>`:''}</span></label><b>${t.q}팩</b></li>`}).join('')}</ul>
+      <button class="btn w" type="button" data-inv="${esc(o.po)}" style="margin-top:8px">국내 송장 입력</button></div>`).join(''):`<div class="empty">한국도착(통관) 주문이 없습니다</div>`;
+    $('main').innerHTML=h;
+    $('main').querySelectorAll('[data-pk]').forEach(c=>{const k='pk_'+c.dataset.pk;c.checked=store.get(k)==='1';c.addEventListener('change',()=>store.set(k,c.checked?'1':null))});
+  }
+}
+
+/* ---------- 재고·입고알림 ---------- */
+async function renderStk(){
+  if(!STK){$('main').innerHTML='<div class="spin">불러오는 중…</div>';try{STK=await call('adminStock',{})}catch(e){$('main').innerHTML=`<div class="empty">${esc(e.message)}</div>`;return}}
+  if(TAB!=='stk')return;
+  $('main').innerHTML=`<div class="sec"><h3>상품 재고 (${STK.products.length}개)</h3>${STK.products.map(p=>`<div class="stk"><span>${esc(nm(p.n).main)}<span class="ps">${esc(p.c)} · ${p.pack}개입</span></span><b class="${p.out?'out':''}">${p.left==null?'원활':`${p.left}개 (${p.packs}팩)`}${p.out?' · 품절':''}</b></div>`).join('')}
+    <p class="ps" style="margin-top:8px">재고 숫자는 시트 '품목_단가_마스터' 재고 칸에서 고칩니다.</p></div>
+    <div class="sec"><h3>입고 알림 신청 ${STK.requests.length}건</h3>${STK.requests.length?STK.requests.map(r=>`<div class="stk"><span>${esc(r.date)} · ${esc(nm(r.n).main)}<span class="ps">${esc(r.who)}</span></span>${r.done?'<b>연락완료</b>':`<a href="tel:${esc(r.tel.replace(/[^0-9+]/g,''))}" style="font-weight:900;color:var(--ok);white-space:nowrap">📞 ${esc(r.tel)}</a>`}</div>`).join(''):'<div class="ps">신청이 없습니다</div>'}</div>`;
+}
+
+function render(){
+  $('ordBar').hidden=TAB!=='ord';
+  document.querySelectorAll('[data-tab]').forEach(b=>b.classList.toggle('on',b.dataset.tab===TAB));
+  if(TAB==='ord')renderOrders();else if(TAB==='agg')renderAgg();else renderStk();
+}
+
+/* ---------- 이벤트 ---------- */
+$('lGo').addEventListener('click',login);$('pin').addEventListener('keydown',e=>{if(e.key==='Enter')login()});
+$('out').addEventListener('click',()=>logout(''));
+$('reload').addEventListener('click',()=>{STK=null;load()});
+$('pX').addEventListener('click',closePane);$('pane').addEventListener('click',e=>{if(e.target===$('pane'))closePane()});
+document.addEventListener('keydown',e=>{if(e.key==='Escape')closePane()});
+$('q').addEventListener('input',e=>{Q=e.target.value.trim();renderOrders()});
+document.addEventListener('click',e=>{
+  const t=e.target.closest('[data-tab],[data-f],[data-next],[data-open],[data-agg],[data-inv]');if(!t)return;
+  if(t.dataset.tab){TAB=t.dataset.tab;scrollTo(0,0);render()}
+  else if(t.dataset.f){F=t.dataset.f;renderOrders();scrollTo(0,0)}
+  else if(t.dataset.agg){AGG=t.dataset.agg;renderAgg()}
+  else if(t.dataset.open)detail(t.dataset.open);
+  else if(t.dataset.inv)detail(t.dataset.inv,true);
+  else if(t.dataset.next){const o=S.orders.find(x=>x.po===t.dataset.next);const i=sIdx(o.status);if(i===4)detail(o.po,true);else setStage(o.po,STAGES[i+1],{},t)}
+});
+if(PIN)call('adminLogin',{}).then(start,()=>logout(''));
+</script>
+</body>
+</html>
