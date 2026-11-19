@@ -41,6 +41,8 @@ button{cursor:pointer}
 .faq .ans{margin:0 12px 12px;padding:12px 14px;border-radius:10px;background:var(--soft);font-size:16px;line-height:1.6}
 .big.faqk{display:flex;align-items:center;justify-content:center;text-decoration:none;background:#fee500;color:#191600;border:0}
 .bar{position:sticky;top:0;z-index:5;background:var(--bg);border-bottom:1px solid var(--line);padding:10px max(4vw,16px)}
+.sbox{display:flex;gap:6px}.sbox .search{flex:1;min-width:0}
+.sbtn{flex:none;width:52px;height:48px;border:0;border-radius:12px;background:#1d1a2b;color:#ffd23f;display:grid;place-items:center}
 .search{width:100%;height:48px;border:2px solid var(--line);border-radius:12px;padding:0 14px;background:var(--card);font-size:16px}
 .tabs{display:flex;gap:6px;overflow-x:auto;margin-top:8px;scrollbar-width:none}
 .tabs button{flex:none;height:40px;padding:0 16px;border-radius:999px;border:2px solid var(--line);background:var(--card);font-weight:700;font-size:15px;white-space:nowrap}
@@ -291,7 +293,7 @@ textarea.f{min-height:80px;resize:vertical}
 </div></header>
 
 <div class="bar"><div class="wrap">
-  <input class="search" id="q" type="search" placeholder="품목명으로 찾기" aria-label="품목 검색">
+  <div class="sbox"><input class="search" id="q" type="search" enterkeyhint="search" placeholder="품목명으로 찾기" aria-label="품목 검색"><button type="button" class="sbtn" id="qGo" aria-label="검색"><svg viewBox="0 0 24 24" width="24" height="24" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5" fill="none" stroke="currentColor" stroke-width="2.6"/><path d="M15.5 15.5 21 21" stroke="currentColor" stroke-width="2.8" stroke-linecap="round"/></svg></button></div>
   <div class="tabs" id="tabs" role="toolbar" aria-label="분류"></div>
 </div></div>
 
@@ -1097,6 +1099,10 @@ document.addEventListener('keydown',e=>{
   if(e.key==='Enter'&&e.target.classList&&e.target.classList.contains('qty'))e.target.blur();
 });
 $('q').addEventListener('input',e=>{q=e.target.value;render()});
+/* 돋보기 버튼·키보드 '검색': 빈칸이면 입력칸으로, 글자가 있으면 검색 결과로 이동하고 키보드 닫기 */
+function doSearch(){const i=$('q');q=i.value;if(!q.trim()){i.focus();return}render();i.blur();const t=$('tabs');if(t)window.scrollTo({top:Math.max(0,t.getBoundingClientRect().top+window.scrollY-8),behavior:'smooth'})}
+$('qGo').addEventListener('click',doSearch);
+$('q').addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();doSearch()}});
 $('go').addEventListener('click',openForm);
 $('sumBtn').addEventListener('click',()=>{cat=MINE;render();scrollTo({top:document.querySelector('.bar').offsetTop,behavior:'smooth'})});
 
