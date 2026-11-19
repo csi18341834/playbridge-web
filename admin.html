@@ -66,6 +66,12 @@ main{padding:10px 16px}
 .next button{flex:1;min-height:56px;border:0;border-radius:14px;font-size:17px;font-weight:900;color:#fff}
 .n0{background:var(--s1)}.n1{background:var(--s2)}.n2{background:var(--s3)}.n3{background:var(--s4)}.n4{background:var(--pk)}
 .next button:disabled{opacity:.55}
+.flags{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:6px}
+.fl{padding:2px 10px;border-radius:8px;font-size:13px;font-weight:900;white-space:nowrap}
+.fl.red{background:#d92d20;color:#fff}.fl.warn{background:#fff1e6;color:#c2410c;border:1.5px solid #f59f6b}
+.chk{display:flex;gap:10px;align-items:center;min-height:48px;margin-top:10px;padding:8px 10px;border-radius:12px;background:#fff0f0;font-weight:900;font-size:15px}
+.chk input{width:24px;height:24px;flex:none;accent-color:#d92d20}
+.hist{list-style:none;margin:0;padding:0;font-size:14px;color:var(--sub)}.hist li{padding:4px 0;border-bottom:1px dashed var(--line)}.hist li:first-child{color:var(--ink);font-weight:700}
 .empty{text-align:center;color:var(--sub);padding:40px 10px;font-weight:700}
 /* 상세 창 */
 #pane{position:fixed;inset:0;z-index:50;background:rgba(29,26,43,.45);display:flex;align-items:flex-end;justify-content:center}
@@ -217,11 +223,16 @@ function packOf(u){return Number((String(u).match(/(\d+)\s*(?:EA|개|입|pcs)/i)
 /* ---------- 주문별 진행관리 ---------- */
 function chips(){const L=['전체'].concat(STAGES,CANCEL);$('chips').innerHTML=L.map(s=>`<button type="button" class="chip${s===F?' on':''}" data-f="${esc(s)}">${esc(s)}<b>${S.counts[s]||0}</b></button>`).join('')}
 function match(o){if(F!=='전체'&&o.status!==F)return false;if(!Q)return true;const q=Q.replace(/\s/g,'').toLowerCase();return [o.shop,o.who,o.po,o.tel.replace(/\D/g,'').slice(-4),o.tel.replace(/\D/g,'')].some(x=>String(x).replace(/\s/g,'').toLowerCase().includes(q))}
+/* 주문일로부터 며칠 지났는지 (한국 날짜 기준) */
+const kday=t=>Math.floor((t+9*3600e3)/864e5);
+function unpaidDays(o){return o.status===STAGES[0]&&o.ts?kday(Date.now())-kday(o.ts):0}
 function card(o){
-  const i=sIdx(o.status),first=nm((o.items[0]||{}).n);
+  const i=sIdx(o.status),first=nm((o.items[0]||{}).n),dn=unpaidDays(o);
+  const flags=(o.partial?'<span class="fl red">부분발송</span>':'')+(dn>=2?`<span class="fl warn">미입금 D+${dn}일</span>`:'');
   const nextBtn=i>=0&&i<5?`<div class="next"><button type="button" class="n${i}" data-next="${esc(o.po)}">${NEXT_LABEL[i]}</button></div>`:'';
   return `<article class="card" id="c-${esc(o.po)}">
     <button type="button" class="hd" data-open="${esc(o.po)}" aria-label="${esc(o.shop)} 주문 자세히 보기">
+      ${flags?`<div class="flags">${flags}</div>`:''}
       <div class="row1"><div class="who">${esc(o.shop||'-')} <small>(${esc(o.who||'-')})</small></div><span class="badge ${bCls(o.status)}">${esc(o.status)}</span></div>
       <div class="po">${esc(o.po)} · ${esc(o.date)}${o.changedAt?` · 변경 ${esc(o.changedAt)}`:''}</div>
       <div class="sum">${esc(first.short)}${o.items.length>1?` 외 ${o.items.length-1}종`:''} · 총 ${o.packs}팩 · <b>${won(o.total)}</b></div>
@@ -270,12 +281,14 @@ function detail(po,focusInv){
   </div>
   <div class="sec"><h3>국내 발송 (택배사·송장)</h3>
     <div class="cour">${COURIERS.map(c=>`<button type="button" data-c="${esc(c)}" class="${c===cour?'on':''}">${esc(c)}</button>`).join('')}</div>
-    <input class="f" id="inv" inputmode="numeric" autocomplete="off" placeholder="송장번호" value="${esc(o.invoice)}" aria-label="송장번호">
+    <input class="f" id="inv" type="text" inputmode="numeric" pattern="[0-9]*" enterkeyhint="done" autocomplete="off" placeholder="송장번호 (숫자)" value="${esc(o.invoice)}" aria-label="송장번호">
     <div class="gap"><button class="btn w pk" type="button" id="invGo">송장 저장 (국내발송완료)</button>
     ${o.invoice?`<button class="btn w ghost" type="button" id="kakao">사장님 발송안내 카톡 멘트 복사</button>`:''}</div>
+    <label class="chk"><input type="checkbox" id="part" ${o.partial?'checked':''}> 부분 발송 (미발송 잔여 품목 있음)</label>
   </div>
   <div class="sec"><h3>품목 ${o.items.length}종 · ${o.packs}팩</h3><ul class="items">${o.items.map(t=>{const x=nm(t.n);return `<li><span>${esc(x.main)}${x.op?`<span class="op">${esc(x.op)}</span>`:''}${x.pa?`<span class="ps">${esc(x.pa)} · ${esc(t.unit)}</span>`:''}</span><b>${t.q}팩<br><small style="font-weight:700">${won(t.sum)}</small></b></li>`}).join('')}</ul>
     <div class="kv"><span>상품</span><span>${won(o.sub)}</span></div><div class="kv"><span>배송비</span><span>${o.ship?won(o.ship):'무료'}</span></div><div class="kv t"><span>합계</span><span>${won(o.total)}</span></div></div>
+  ${(o.history||[]).length?`<div class="sec"><h3>변경 이력</h3><ul class="hist">${o.history.slice().reverse().map(h=>`<li>${esc(h)}</li>`).join('')}</ul></div>`:''}
   <div class="sec"><h3>배송지 · 연락처</h3><div class="addr">${esc(o.addr||'-')}</div><div class="addr" style="margin-top:4px;font-weight:700">${esc(o.tel)}</div>
     <div class="contact"><a href="tel:${esc(o.tel.replace(/[^0-9+]/g,''))}">📞 전화 걸기</a><button type="button" id="addrCp">주소 복사</button></div></div>`;
   openPane();
@@ -291,6 +304,8 @@ function detail(po,focusInv){
     try{const r=await call('adminUpdateStatus',{po,adminMemo:$('am').value});putOrder(r.order);render();toast('메모를 저장했습니다');detail(po)}catch(x){toast(x.message);b.disabled=false;b.textContent='메모 저장'}});
   B.querySelectorAll('[data-c]').forEach(b=>b.addEventListener('click',()=>{cour=b.dataset.c;B.querySelectorAll('[data-c]').forEach(x=>x.classList.toggle('on',x===b))}));
   $('invGo').addEventListener('click',e=>{const v=$('inv').value.trim();if(!cour){toast('택배사를 골라 주세요');return}if(!v){toast('송장번호를 적어 주세요');$('inv').focus();return}setStage(po,STAGES[5],{courier:cour,invoice:v},e.target)});
+  $('part').addEventListener('change',async e=>{const c=e.target,v=c.checked;c.disabled=true;
+    try{const r=await call('adminUpdateStatus',{po,partial:v});putOrder(r.order);render();toast(v?'부분발송으로 표시했습니다':'부분발송 표시를 껐습니다')}catch(x){c.checked=!v;toast(x.message)}finally{c.disabled=false}});
   if($('kakao'))$('kakao').addEventListener('click',()=>copy(shipMsg(o),'발송안내 멘트를 복사했습니다. 카톡에 붙여넣어 주세요'));
   $('addrCp').addEventListener('click',()=>copy(o.addr,'주소를 복사했습니다'));
   if(focusInv){const f=$('inv');f.scrollIntoView({block:'center'});setTimeout(()=>f.focus(),150)}
@@ -308,12 +323,13 @@ function renderAgg(){
     const m={};buy.forEach(o=>o.items.forEach(t=>{const x=nm(t.n),k=t.c+'|'+x.op;if(!m[k])m[k]={c:t.c,name:x.main,op:x.op,pa:x.pa,pack:packOf(t.unit),q:0,orders:new Set()};m[k].q+=t.q;m[k].orders.add(o.shop)}));
     const L=Object.values(m).sort((a,b)=>a.c.localeCompare(b.c)||a.op.localeCompare(b.op));
     const tq=L.reduce((a,b)=>a+b.q,0),tp=L.reduce((a,b)=>a+b.q*b.pack,0);
-    h+=buy.length?`<button class="btn w pk" type="button" id="bulk">발주전 주문 ${buy.length}건 전체 '1688발주완료'로 일괄 변경</button>
-      <div class="tot" style="margin-top:12px"><span>상품 ${L.length}종</span><span>${tq}팩 · ${tp.toLocaleString()}개</span></div>
+    h+=buy.length?`<div class="tot"><span>상품 ${L.length}종</span><span>${tq}팩 · ${tp.toLocaleString()}개</span></div>
       ${L.map(a=>`<div class="agg"><div class="t"><span>${esc(a.name)}${a.op?`<span class="op">${esc(a.op)}</span>`:''}</span><b>${a.q}팩</b></div><div class="m">${esc(a.c)} · ${a.pack}개입 → <b>${(a.q*a.pack).toLocaleString()}개</b> · ${esc([...a.orders].join(', '))}</div></div>`).join('')}
-      <button class="btn w ghost" type="button" id="aggCp">합계 목록 복사</button>`:`<div class="empty">입금확인(발주전) 주문이 없습니다</div>`;
+      <button class="btn w ghost" type="button" id="aggCp">합계 목록 복사</button>
+      <p class="ps" style="margin:18px 2px 8px">1688 사이트에서 위 합계대로 결제·발주를 마친 뒤에 누르세요.</p>
+      <button class="btn w pk" type="button" id="bulk">발주전 주문 ${buy.length}건 전체 '1688발주완료'로 일괄 변경</button>`:`<div class="empty">입금확인(발주전) 주문이 없습니다</div>`;
     $('main').innerHTML=h;
-    if($('bulk'))$('bulk').addEventListener('click',async e=>{if(!confirm(`발주전 주문 ${buy.length}건을 모두 '1688발주완료'로 바꿀까요?`))return;const b=e.target;b.disabled=true;b.textContent='바꾸는 중…';
+    if($('bulk'))$('bulk').addEventListener('click',async e=>{if(!confirm(`입금확인(발주전) 주문 ${buy.length}건(${buy.map(o=>o.shop).join(', ')})을 모두 '1688발주완료'로 바꿀까요?\n1688 발주를 마친 뒤에만 눌러 주세요.`))return;const b=e.target;b.disabled=true;b.textContent='바꾸는 중…';
       try{const r=await call('adminBulkStatus',{from:STAGES[1],to:STAGES[2]});toast(`${r.count}건을 1688발주완료로 바꿨습니다`);await load()}catch(x){toast(x.message);b.disabled=false}});
     if($('aggCp'))$('aggCp').addEventListener('click',()=>copy(['[1688 발주 합계]',...L.map(a=>`${a.c} ${a.name}${a.op?' ['+a.op+']':''} : ${a.q}팩 (${a.q*a.pack}개)`),`합계 ${tq}팩 / ${tp}개`].join('\n'),'합계 목록을 복사했습니다'));
   }else{
