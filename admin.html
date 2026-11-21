@@ -33,7 +33,7 @@ header{position:sticky;top:0;z-index:20;background:var(--y);padding:10px 16px 0;
 .top h1{flex:1;margin:0;font-size:18px;font-weight:900;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .top small{font-size:12px;font-weight:700;color:var(--sub)}
 .ib{min-height:40px;padding:0 12px;border:2px solid var(--ink);border-radius:12px;background:#fff;font-size:14px;font-weight:900;white-space:nowrap}
-.sub{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:4px;margin-top:10px}
+.sub{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:4px;margin-top:10px}
 .sub button{min-height:44px;border:0;border-radius:12px 12px 0 0;background:rgba(255,255,255,.55);font-size:14px;font-weight:900;line-height:1.2;padding:4px 2px}
 .sub button.on{background:var(--bg)}
 .bar{background:var(--bg);margin:0 -16px;padding:10px 16px 8px}
@@ -141,6 +141,11 @@ textarea{width:100%;min-height:84px;border:2px solid var(--line);border-radius:1
 .spin{text-align:center;padding:30px;color:var(--sub);font-weight:700}
 .rsdue{border:2px solid var(--ok)}.rsg{margin:8px 0 12px}.rsg>b{display:block;font-size:16px}
 .rst{font-style:normal;font-size:12px;font-weight:800;padding:1px 6px;border-radius:6px;background:#eee;color:#666;white-space:nowrap}.rst.on{background:#e3f6ec;color:var(--ok)}
+.seg4{grid-template-columns:repeat(4,1fr)}.seg4 button{min-height:42px}
+.kpis{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px}.kpi{background:var(--card);border:2px solid var(--line);border-radius:14px;padding:10px 12px;min-width:0}
+.kpi span{display:block;font-size:13px;font-weight:800;color:var(--sub)}.kpi b{display:block;font-size:22px;line-height:1.3}.kpi small{display:block;font-size:13px;color:var(--sub);overflow-wrap:anywhere}
+.bars{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;height:150px;align-items:end;margin-top:8px}.bc{display:flex;flex-direction:column;align-items:center;justify-content:flex-end;height:100%;min-width:0}
+.bc i{display:block;width:70%;min-height:2px;background:var(--pk);border-radius:6px 6px 0 0}.bc span{font-size:12px;font-weight:800;margin-top:4px}.bc small{font-size:11px;color:var(--sub)}
 </style>
 </head>
 <body>
@@ -158,9 +163,10 @@ textarea{width:100%;min-height:84px;border:2px solid var(--line);border-radius:1
   <header>
     <div class="top"><h1>주문 관리 <small id="upd"></small></h1><button class="ib" id="reload" type="button">새로고침</button><button class="ib" id="out" type="button">나가기</button></div>
     <div class="sub" role="tablist">
-      <button type="button" data-tab="ord" class="on">주문별<br>진행관리</button>
-      <button type="button" data-tab="agg">1688 발주·<br>출고 품목합계</button>
+      <button type="button" data-tab="ord" class="on">주문<br>진행관리</button>
+      <button type="button" data-tab="agg">1688발주·<br>품목합계</button>
       <button type="button" data-tab="stk">재고·<br>입고알림</button>
+      <button type="button" data-tab="sta">📊<br>간단 통계</button>
     </div>
     <div class="bar" id="ordBar">
       <div class="chips" id="chips"></div>
@@ -185,7 +191,7 @@ const won=n=>Number(n||0).toLocaleString('ko-KR')+'원';
 const sIdx=s=>s===CANCEL?-1:STAGES.indexOf(s);
 const bCls=s=>s===CANCEL?'bx':'b'+Math.max(0,STAGES.indexOf(s));
 const store={get(k){try{return sessionStorage.getItem(k)}catch(e){return null}},set(k,v){try{v==null?sessionStorage.removeItem(k):sessionStorage.setItem(k,v)}catch(e){}}};
-let PIN=store.get('pb_admin')||'',S={orders:[],counts:{}},F='전체',Q='',TAB='ord',AGG='buy',STK=null,openPo='';
+let PIN=store.get('pb_admin')||'',S={orders:[],counts:{}},F='전체',Q='',TAB='ord',AGG='buy',STK=null,openPo='',STP='7d';
 
 /* 서버 호출 (text/plain → 사전요청 없이 Apps Script doPost) */
 function call(action,payload){
@@ -359,10 +365,30 @@ function rsCall(r){const t=String(r.tel||'');return /@/.test(t)?`<a href="mailto
 function rsRow(r){return `<div class="stk"><span>${esc(r.date)} 신청<span class="ps">${esc(r.who)}</span></span>${rsCall(r)}</div>`
 }
 
+/* ---------- 간단 통계 (불러온 주문으로 화면에서 계산, 취소 주문은 금액에서 뺌) ---------- */
+function dayKey(t){const d=new Date(t);return d.getFullYear()+'-'+(d.getMonth()+1)+'-'+d.getDate()}
+function renderSta(){
+  const now=new Date(),t0=new Date(now.getFullYear(),now.getMonth(),now.getDate()).getTime();
+  const P={today:['오늘',t0],'7d':['최근 7일',t0-6*864e5],month:['이번 달',new Date(now.getFullYear(),now.getMonth(),1).getTime()],all:['전체',0]};
+  const all=S.orders.filter(o=>o.ts>=P[STP][1]),live=all.filter(o=>o.status!==CANCEL),wait=live.filter(o=>o.status===STAGES[0]),paid=live.filter(o=>o.status!==STAGES[0]);
+  const sum=L=>L.reduce((a,o)=>a+(o.total||0),0),shops=new Set(live.map(o=>o.shop||o.who));
+  const prod={},cust={};live.forEach(o=>{o.items.forEach(t=>{const k=t.c,x=prod[k]||(prod[k]={n:nm(t.n).main,q:0,sum:0});x.q+=t.q;x.sum+=t.sum});const c=cust[o.shop||o.who]||(cust[o.shop||o.who]={n:o.shop||o.who,cnt:0,sum:0});c.cnt++;c.sum+=o.total||0});
+  const top=(m,k)=>Object.values(m).sort((a,b)=>b[k]-a[k]).slice(0,5);
+  const days=[...Array(7)].map((_,i)=>{const t=t0-(6-i)*864e5,k=dayKey(t),L=S.orders.filter(o=>o.status!==CANCEL&&o.ts&&dayKey(o.ts)===k);return {lab:(new Date(t).getMonth()+1)+'/'+new Date(t).getDate(),n:L.length,sum:sum(L)}});
+  const mx=Math.max(1,...days.map(d=>d.sum));
+  const card=(lab,val,sub)=>`<div class="kpi"><span>${lab}</span><b>${val}</b>${sub?`<small>${sub}</small>`:''}</div>`;
+  $('main').innerHTML=`<div class="seg seg4">${Object.keys(P).map(k=>`<button type="button" data-stp="${k}" class="${STP===k?'on':''}">${P[k][0]}</button>`).join('')}</div>
+    <div class="kpis">${card('주문',live.length+'건',won(sum(live)))}${card('입금 확인',paid.length+'건',won(sum(paid)))}${card('입금 대기',wait.length+'건',won(sum(wait)))}${card('평균 주문',live.length?won(Math.round(sum(live)/live.length)):'-',`거래처 ${shops.size}곳 · 취소 ${all.length-live.length}건`)}</div>
+    <div class="sec"><h3>최근 7일 주문금액 <span class="ps">(취소 제외)</span></h3><div class="bars">${days.map(d=>`<div class="bc"><i style="height:${Math.round(d.sum/mx*100)}%" title="${won(d.sum)}"></i><span>${d.lab}</span><small>${d.n}건</small></div>`).join('')}</div></div>
+    <div class="sec"><h3>많이 나간 상품 TOP 5 <span class="ps">(${P[STP][0]})</span></h3>${Object.keys(prod).length?top(prod,'q').map((x,i)=>`<div class="stk"><span>${i+1}. ${esc(x.n)}</span><b>${x.q}팩</b></div>`).join(''):'<div class="ps">주문이 없습니다</div>'}</div>
+    <div class="sec"><h3>거래처별 주문 TOP 5 <span class="ps">(${P[STP][0]})</span></h3>${Object.keys(cust).length?top(cust,'sum').map((x,i)=>`<div class="stk"><span>${i+1}. ${esc(x.n)}<span class="ps">${x.cnt}건</span></span><b>${won(x.sum)}</b></div>`).join(''):'<div class="ps">주문이 없습니다</div>'}</div>
+    <p class="ps">금액은 입금액(VAT·배송비 포함) 기준, 취소 주문은 빼고 셉니다. 위 '새로고침'을 누르면 최신 주문으로 다시 계산합니다.</p>`;
+}
+
 function render(){
   $('ordBar').hidden=TAB!=='ord';
   document.querySelectorAll('[data-tab]').forEach(b=>b.classList.toggle('on',b.dataset.tab===TAB));
-  if(TAB==='ord')renderOrders();else if(TAB==='agg')renderAgg();else renderStk();
+  if(TAB==='ord')renderOrders();else if(TAB==='agg')renderAgg();else if(TAB==='sta')renderSta();else renderStk();
 }
 
 /* ---------- 이벤트 ---------- */
@@ -373,6 +399,7 @@ $('pX').addEventListener('click',closePane);$('pane').addEventListener('click',e
 document.addEventListener('keydown',e=>{if(e.key==='Escape')closePane()});
 $('q').addEventListener('input',e=>{Q=e.target.value.trim();renderOrders()});
 document.addEventListener('click',e=>{
+  const sp=e.target.closest('[data-stp]');if(sp){STP=sp.dataset.stp;renderSta();return}
   const t=e.target.closest('[data-tab],[data-f],[data-next],[data-open],[data-agg],[data-inv]');if(!t)return;
   if(t.dataset.tab){TAB=t.dataset.tab;scrollTo(0,0);render()}
   else if(t.dataset.f){F=t.dataset.f;renderOrders();scrollTo(0,0)}
