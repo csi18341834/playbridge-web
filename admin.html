@@ -146,6 +146,9 @@ textarea{width:100%;min-height:84px;border:2px solid var(--line);border-radius:1
 .kpi span{display:block;font-size:13px;font-weight:800;color:var(--sub)}.kpi b{display:block;font-size:22px;line-height:1.3}.kpi small{display:block;font-size:13px;color:var(--sub);overflow-wrap:anywhere}
 .bars{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;height:150px;align-items:end;margin-top:8px}.bc{display:flex;flex-direction:column;align-items:center;justify-content:flex-end;height:100%;min-width:0}
 .bc i{display:block;width:70%;min-height:2px;background:var(--pk);border-radius:6px 6px 0 0}.bc span{font-size:12px;font-weight:800;margin-top:4px}.bc small{font-size:11px;color:var(--sub)}
+#adminStats{display:grid;grid-template-columns:1fr 1fr;gap:8px;padding:10px 16px 0}#adminStats[hidden]{display:none}
+.ast{background:var(--card);border:2px solid var(--line);border-radius:14px;padding:10px 12px;min-width:0}.ast span{display:block;font-size:13px;font-weight:800;color:var(--sub)}
+.ast b{display:block;font-size:22px;line-height:1.3}.ast small{display:block;font-size:13px;color:var(--sub);overflow-wrap:anywhere}.ast.hot{border-color:var(--pk)}.ast.hot b{color:var(--pk)}
 </style>
 </head>
 <body>
@@ -174,6 +177,7 @@ textarea{width:100%;min-height:84px;border:2px solid var(--line);border-radius:1
     </div>
   </header>
   <div class="warnpin" id="weak" hidden>관리자 비밀번호가 짧습니다. 시트 '설정' 탭의 '관리자비밀번호'를 8자리 이상으로 바꿔 주세요.</div>
+  <section id="adminStats" aria-label="주문 요약" hidden></section>
   <main id="main"><div class="spin">불러오는 중…</div></main>
 </div>
 
@@ -385,8 +389,24 @@ function renderSta(){
     <p class="ps">금액은 입금액(VAT·배송비 포함) 기준, 취소 주문은 빼고 셉니다. 위 '새로고침'을 누르면 최신 주문으로 다시 계산합니다.</p>`;
 }
 
+/* ---------- 주문 탭 위 요약 4칸 (오늘·이번 달·진행 중·취소). render()가 불릴 때마다 S.orders로 다시 계산 ---------- */
+const numOf=v=>Number(String(v==null?'':v).replace(/[^0-9.-]/g,''))||0;   // 금액·시각이 글자로 와도 안전하게 숫자로
+function tsOf(o){const t=numOf(o.ts||o.time||o.timestamp);if(t>1e11)return t;const d=Date.parse(o.date||o.createdAt||'');return isNaN(d)?0:d}
+function amtOf(o){return numOf(o.total!=null&&o.total!==''?o.total:(o.sum!=null?o.sum:o.amount))}
+function renderAdminStats(orders){
+  const box=$('adminStats');if(!box)return;
+  const L=Array.isArray(orders)?orders:[],now=new Date();
+  const d0=new Date(now.getFullYear(),now.getMonth(),now.getDate()).getTime(),m0=new Date(now.getFullYear(),now.getMonth(),1).getTime();
+  const live=L.filter(o=>o.status!==CANCEL),sum=a=>a.reduce((x,o)=>x+amtOf(o),0);
+  const today=live.filter(o=>tsOf(o)>=d0),month=live.filter(o=>tsOf(o)>=m0);
+  const doing=live.filter(o=>o.status!==STAGES[5]).length,cxl=L.length-live.length;
+  const c=(lab,val,sub,cls)=>`<div class="ast${cls?' '+cls:''}"><span>${lab}</span><b>${val}</b><small>${sub}</small></div>`;
+  box.innerHTML=c('오늘 주문',today.length+'건',won(sum(today)))+c('이번 달 누계',month.length+'건',won(sum(month)))+c('진행 중',doing+'건','발송 전 처리 필요',doing?'hot':'')+c('취소',cxl+'건','전체 기간');
+}
+
 function render(){
   $('ordBar').hidden=TAB!=='ord';
+  $('adminStats').hidden=TAB!=='ord';if(TAB==='ord')renderAdminStats(S.orders);
   document.querySelectorAll('[data-tab]').forEach(b=>b.classList.toggle('on',b.dataset.tab===TAB));
   if(TAB==='ord')renderOrders();else if(TAB==='agg')renderAgg();else if(TAB==='sta')renderSta();else renderStk();
 }
