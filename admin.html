@@ -139,6 +139,8 @@ textarea{width:100%;min-height:84px;border:2px solid var(--line);border-radius:1
 #toast span{flex:1}
 #toast button{flex:none;min-height:40px;padding:0 12px;border:0;border-radius:10px;background:var(--y);color:var(--ink);font-weight:900}
 .spin{text-align:center;padding:30px;color:var(--sub);font-weight:700}
+.rsdue{border:2px solid var(--ok)}.rsg{margin:8px 0 12px}.rsg>b{display:block;font-size:16px}
+.rst{font-style:normal;font-size:12px;font-weight:800;padding:1px 6px;border-radius:6px;background:#eee;color:#666;white-space:nowrap}.rst.on{background:#e3f6ec;color:var(--ok)}
 </style>
 </head>
 <body>
@@ -347,7 +349,14 @@ async function renderStk(){
   if(TAB!=='stk')return;
   $('main').innerHTML=`<div class="sec"><h3>상품 재고 (${STK.products.length}개)</h3>${STK.products.map(p=>`<div class="stk"><span>${esc(nm(p.n).main)}<span class="ps">${esc(p.c)} · ${p.pack}개입</span></span><b class="${p.out?'out':''}">${p.left==null?'원활':`${p.left}개 (${p.packs}팩)`}${p.out?' · 품절':''}</b></div>`).join('')}
     <p class="ps" style="margin-top:8px">재고 숫자는 시트 '품목_단가_마스터' 재고 칸에서 고칩니다.</p></div>
-    <div class="sec"><h3>입고 알림 신청 ${STK.requests.length}건</h3>${STK.requests.length?STK.requests.map(r=>`<div class="stk"><span>${esc(r.date)} · ${esc(nm(r.n).main)}<span class="ps">${esc(r.who)}</span></span>${r.done?'<b>연락완료</b>':`<a href="tel:${esc(r.tel.replace(/[^0-9+]/g,''))}" style="font-weight:900;color:var(--ok);white-space:nowrap">📞 ${esc(r.tel)}</a>`}</div>`).join(''):'<div class="ps">신청이 없습니다</div>'}</div>`;
+    ${(()=>{const due=STK.requests.filter(r=>!r.done&&r.st==='판매중'),g={};due.forEach(r=>{(g[r.c]=g[r.c]||{n:r.n,list:[]}).list.push(r)});
+      return `<div class="sec rsdue"><h3>📣 지금 연락할 분 ${due.length}명 <span class="ps">(판매중으로 바뀐 상품)</span></h3>${due.length?Object.keys(g).map(c=>`<div class="rsg"><b>${esc(nm(g[c].n).main)}</b><span class="ps">${esc(c)} · ${g[c].list.length}명</span>${g[c].list.map(rsRow).join('')}</div>`).join(''):'<div class="ps">재입고된 상품의 대기자가 없습니다</div>'}
+        <p class="ps" style="margin-top:8px">연락한 뒤 시트 '입고알림' 탭 '연락완료' 칸에 O를 적으면 목록에서 빠집니다.</p></div>`})()}
+    <div class="sec"><h3>입고·오픈 알림 신청 전체 ${STK.requests.length}건</h3>${STK.requests.length?STK.requests.map(r=>`<div class="stk"><span>${esc(r.date)} · ${esc(nm(r.n).main)} <i class="rst ${r.st==='판매중'?'on':''}">${esc(r.st||'')}</i><span class="ps">${esc(r.who)}</span></span>${r.done?'<b>연락완료</b>':rsCall(r)}</div>`).join(''):'<div class="ps">신청이 없습니다</div>'}</div>`;
+}
+/* 연락처면 전화 걸기, 이메일이면 메일 쓰기 */
+function rsCall(r){const t=String(r.tel||'');return /@/.test(t)?`<a href="mailto:${esc(t)}" style="font-weight:900;color:var(--ok);white-space:nowrap;overflow-wrap:anywhere">✉️ ${esc(t)}</a>`:`<a href="tel:${esc(t.replace(/[^0-9+]/g,''))}" style="font-weight:900;color:var(--ok);white-space:nowrap">📞 ${esc(t)}</a>`}
+function rsRow(r){return `<div class="stk"><span>${esc(r.date)} 신청<span class="ps">${esc(r.who)}</span></span>${rsCall(r)}</div>`
 }
 
 function render(){
