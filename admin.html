@@ -334,7 +334,7 @@ function detail(po,focusInv){
     <label class="chk"><input type="checkbox" id="part" ${o.partial?'checked':''}> 부분 발송 (미발송 잔여 품목 있음)</label>
   </div>
   <div class="sec"><h3>품목 ${o.items.length}종 · ${o.packs}팩</h3><ul class="items">${o.items.map(t=>{const x=nm(t.n);return `<li><span>${esc(x.main)}${x.op?`<span class="op">${esc(x.op)}</span>`:''}${x.pa?`<span class="ps">${esc(x.pa)} · ${esc(t.unit)}</span>`:''}</span><b>${t.q}팩<br><small style="font-weight:700">${won(t.sum)}</small></b></li>`}).join('')}</ul>
-    <div class="kv"><span>상품</span><span>${won(o.sub)}</span></div>${o.disc?`<div class="kv" style="color:#c00"><span>할인 ${esc(o.coupon)}</span><span>-${won(Math.round(o.disc*1.1))}</span></div>`:''}<div class="kv"><span>배송비</span><span>${o.ship?won(o.ship):'무료'}</span></div><div class="kv t"><span>합계</span><span>${won(o.total)}</span></div></div>
+    <div class="kv"><span>상품</span><span>${won(o.sub)}</span></div>${o.disc?`<div class="kv" style="color:#c00"><span>할인 ${esc(o.coupon)}</span><span>-${won(o.disc)}</span></div>`:''}<div class="kv"><span>배송비</span><span>${o.ship?won(o.ship):'무료'}</span></div><div class="kv t"><span>합계</span><span>${won(o.total)}</span></div></div>
   ${(o.history||[]).length?`<div class="sec"><h3>변경 이력</h3><ul class="hist">${o.history.slice().reverse().map(h=>`<li>${esc(h)}</li>`).join('')}</ul></div>`:''}
   <div class="sec"><h3>배송지 · 연락처</h3><div class="addr">${esc(o.addr||'-')}</div><div class="addr" style="margin-top:4px;font-weight:700">${esc(o.tel)}</div>
     <div class="contact"><a href="tel:${esc(o.tel.replace(/[^0-9+]/g,''))}">📞 전화 걸기</a><button type="button" id="addrCp">주소 복사</button></div></div>`;
@@ -626,13 +626,13 @@ async function renderCpn(force){
       <label>코드 (영문·숫자)<input id="cfCode" placeholder="예: OPEN" autocomplete="off"></label>
       <label>쿠폰 이름<input id="cfName" placeholder="예: 오픈기념 1만원 할인"></label>
       <div class="seg seg2" id="cfType"><button type="button" data-ct="AMOUNT" class="on">정액 (원)</button><button type="button" data-ct="PERCENT">정률 (%)</button></div>
-      <label><span id="cfVL">할인 금액 (원, 공급가 기준)</span><input id="cfVal" type="number" inputmode="numeric" min="1"></label>
+      <label><span id="cfVL">할인 금액 (원, 입금액에서 그대로 빠짐)</span><input id="cfVal" type="number" inputmode="numeric" min="1"></label>
       <label>최소 주문금액 (공급가, 원)<input id="cfMin" type="number" inputmode="numeric" placeholder="없으면 비워 두기"></label>
       <label id="cfMaxL" hidden>최대 할인 금액 (원)<input id="cfMax" type="number" inputmode="numeric" placeholder="없으면 비워 두기"></label>
       <label>만료일<input id="cfExp" type="date"></label>
       <label>총 발행 수량 (선착순 · 비우면 무제한)<input id="cfFirst" type="number" inputmode="numeric" placeholder="없으면 비워 두기"></label>
       <label class="kmchk"><input type="checkbox" id="cfWeb" checked> 주문 페이지 직접 주문 전용 (WEB_ONLY · 끄면 카톡 등록에도 사용 가능)</label>
-      <button class="btn w pk" type="button" id="cfGo">할인 코드 저장</button><p class="ps">같은 코드로 저장하면 내용이 고쳐집니다 (사용 수는 유지). 할인은 공급가에서 빼고 VAT를 다시 붙입니다.</p></div></div>
+      <button class="btn w pk" type="button" id="cfGo">할인 코드 저장</button><p class="ps">같은 코드로 저장하면 내용이 고쳐집니다 (사용 수는 유지). 할인 금액은 입금액(VAT 포함)에서 그대로 빠집니다.</p></div></div>
     ${CPN.length?CPN.map(c=>`<article class="cpc${c.active?'':' off'}"><div class="row1"><div class="who">${esc(c.code)} <small>${esc(c.name)}</small></div>
         <button type="button" class="tg${c.active?' on':''}" data-tg="${esc(c.code)}" aria-pressed="${c.active}">${c.active?'사용 중':'중지됨'}</button></div>
       <div class="ps">${c.type==='PERCENT'?`${c.value}% 할인${c.max?` (최대 ${won(c.max)})`:''}`:`${won(c.value)} 할인`} · 최소 ${c.min?won(c.min):'없음'}(공급가) · ${c.channel==='ALL'?'웹·카톡':'웹 주문 전용'} · 횟수 무제한 · 만료 ${esc(c.exp||'없음')}</div>
@@ -641,7 +641,7 @@ async function renderCpn(force){
       ${c.orders.length?`<ul class="hist">${c.orders.map(o=>`<li>${esc(o.date)} · <button type="button" class="lnk" data-open="${esc(o.po)}">${esc(o.po)}</button> · ${esc(o.shop)} · -${won(o.disc)}</li>`).join('')}</ul>`:''}
       <button type="button" class="lnk" data-cedit="${esc(c.code)}">내용 고치기</button></article>`).join(''):'<div class="empty">할인 코드가 없습니다</div>'}`;
   let ty='AMOUNT';
-  m.querySelectorAll('[data-ct]').forEach(b=>b.onclick=()=>{ty=b.dataset.ct;m.querySelectorAll('[data-ct]').forEach(x=>x.classList.toggle('on',x===b));$('cfVL').textContent=ty==='PERCENT'?'할인율 (%)':'할인 금액 (원, 공급가 기준)';$('cfMaxL').hidden=ty!=='PERCENT'});
+  m.querySelectorAll('[data-ct]').forEach(b=>b.onclick=()=>{ty=b.dataset.ct;m.querySelectorAll('[data-ct]').forEach(x=>x.classList.toggle('on',x===b));$('cfVL').textContent=ty==='PERCENT'?'할인율 (%, VAT 포함 상품금액 기준)':'할인 금액 (원, 입금액에서 그대로 빠짐)';$('cfMaxL').hidden=ty!=='PERCENT'});
   m.querySelectorAll('[data-cedit]').forEach(b=>b.onclick=()=>{const c=CPN.find(x=>x.code===b.dataset.cedit);$('cfCode').value=c.code;$('cfName').value=c.name;$('cfVal').value=c.value;$('cfMin').value=c.min||'';$('cfMax').value=c.max||'';$('cfExp').value=c.exp||'';$('cfFirst').value=c.total||'';$('cfWeb').checked=c.channel!=='ALL';
     m.querySelector(`[data-ct="${c.type}"]`).click();scrollTo(0,0);$('cfCode').focus()});
   m.querySelectorAll('[data-tg]').forEach(b=>b.onclick=async()=>{const c=CPN.find(x=>x.code===b.dataset.tg);b.disabled=true;
