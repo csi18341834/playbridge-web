@@ -494,7 +494,7 @@ function kmPane(){
       <div id="kmAddrCmp"></div>
       <label class="kmchk" id="kmUpdRow"><input type="checkbox" id="kmUpd"> 이 연락처·주소를 거래처 기본값으로 저장</label>
       <h4>② 상품·수량 (팩)</h4><div id="kmItems"></div><button class="btn w ghost" type="button" id="kmAdd">＋ 상품 추가</button>
-      <div id="kmCpRow" hidden><label class="l" for="kmCpIn">할인 코드 (선택 · 적용채널 ALL 코드만)</label><div class="kmcp"><input type="text" id="kmCpIn" placeholder="예: OPEN10000" autocomplete="off"><button class="btn" type="button" id="kmCpGo">적용</button></div><div class="ps" id="kmCpMsg"></div></div>
+      <div id="kmCpRow" hidden><label class="l" for="kmCpIn">할인 코드 (선택 · 적용채널 ALL 코드만)</label><div class="kmcp"><input type="text" id="kmCpIn" placeholder="예: OPEN" autocomplete="off"><button class="btn" type="button" id="kmCpGo">적용</button></div><div class="ps" id="kmCpMsg"></div></div>
       <label class="kmchk"><input type="checkbox" id="kmCard"> 💳 법인/신용카드 결제 요청 (결제링크로 받기)</label>
       <div class="kmtot" id="kmTot"></div>
       <label class="l" for="kmMemo">메모 (선택)</label><input type="text" id="kmMemo" placeholder="예: 입금은 내일 예정">
@@ -623,27 +623,26 @@ async function renderCpn(force){
       <p class="ps">${CPON?'주문 페이지 주문서에 할인 코드 칸이 보이고, 아래 \'사용 중\' 코드를 쓸 수 있어요.':'주문 페이지에 할인 코드 칸이 전혀 보이지 않아요. 켜면 아래 \'사용 중\' 코드가 바로 쓰입니다.'}</p>
       <button class="btn w ${CPON?'ghost':'pk'}" type="button" id="cpMaster">${CPON?'할인쿠폰 기능 끄기 (OFF · 숨김)':'할인쿠폰 기능 켜기 (ON · 가동)'}</button></div>
     <div class="sec"><h3>🎟 새 할인 코드 만들기</h3><div class="cpform">
-      <label>코드 (영문·숫자)<input id="cfCode" placeholder="예: OPEN10000" autocomplete="off"></label>
+      <label>코드 (영문·숫자)<input id="cfCode" placeholder="예: OPEN" autocomplete="off"></label>
       <label>쿠폰 이름<input id="cfName" placeholder="예: 오픈기념 1만원 할인"></label>
       <div class="seg seg2" id="cfType"><button type="button" data-ct="AMOUNT" class="on">정액 (원)</button><button type="button" data-ct="PERCENT">정률 (%)</button></div>
       <label><span id="cfVL">할인 금액 (원, 공급가 기준)</span><input id="cfVal" type="number" inputmode="numeric" min="1"></label>
       <label>최소 주문금액 (공급가, 원)<input id="cfMin" type="number" inputmode="numeric" placeholder="없으면 비워 두기"></label>
       <label id="cfMaxL" hidden>최대 할인 금액 (원)<input id="cfMax" type="number" inputmode="numeric" placeholder="없으면 비워 두기"></label>
       <label>만료일<input id="cfExp" type="date"></label>
-      <label>총 발행 수량 (선착순)<input id="cfFirst" type="number" inputmode="numeric" placeholder="없으면 비워 두기"></label>
-      <label>거래처(연락처·상호)당 사용 횟수<input id="cfPer" type="number" inputmode="numeric" value="1" placeholder="없으면 비워 두기"></label>
+      <label>총 발행 수량 (선착순 · 비우면 무제한)<input id="cfFirst" type="number" inputmode="numeric" placeholder="없으면 비워 두기"></label>
       <label class="kmchk"><input type="checkbox" id="cfWeb" checked> 주문 페이지 직접 주문 전용 (WEB_ONLY · 끄면 카톡 등록에도 사용 가능)</label>
       <button class="btn w pk" type="button" id="cfGo">할인 코드 저장</button><p class="ps">같은 코드로 저장하면 내용이 고쳐집니다 (사용 수는 유지). 할인은 공급가에서 빼고 VAT를 다시 붙입니다.</p></div></div>
     ${CPN.length?CPN.map(c=>`<article class="cpc${c.active?'':' off'}"><div class="row1"><div class="who">${esc(c.code)} <small>${esc(c.name)}</small></div>
         <button type="button" class="tg${c.active?' on':''}" data-tg="${esc(c.code)}" aria-pressed="${c.active}">${c.active?'사용 중':'중지됨'}</button></div>
-      <div class="ps">${c.type==='PERCENT'?`${c.value}% 할인${c.max?` (최대 ${won(c.max)})`:''}`:`${won(c.value)} 할인`} · 최소 ${c.min?won(c.min):'없음'}(공급가) · ${c.channel==='ALL'?'웹·카톡':'웹 주문 전용'} · 거래처당 ${c.perClient?c.perClient+'회':'제한 없음'} · 만료 ${esc(c.exp||'없음')}</div>
+      <div class="ps">${c.type==='PERCENT'?`${c.value}% 할인${c.max?` (최대 ${won(c.max)})`:''}`:`${won(c.value)} 할인`} · 최소 ${c.min?won(c.min):'없음'}(공급가) · ${c.channel==='ALL'?'웹·카톡':'웹 주문 전용'} · 횟수 무제한 · 만료 ${esc(c.exp||'없음')}</div>
       <div class="kv"><span>사용</span><span>${c.used}회${c.total?` / ${c.total}장`:''} · 할인 합계 ${won(c.discSum)}</span></div>
       ${c.active&&!CPON?'<div class="ps" style="color:#b06a00;font-weight:800">전체 스위치가 OFF라 고객에게는 아직 안 보여요</div>':''}
       ${c.orders.length?`<ul class="hist">${c.orders.map(o=>`<li>${esc(o.date)} · <button type="button" class="lnk" data-open="${esc(o.po)}">${esc(o.po)}</button> · ${esc(o.shop)} · -${won(o.disc)}</li>`).join('')}</ul>`:''}
       <button type="button" class="lnk" data-cedit="${esc(c.code)}">내용 고치기</button></article>`).join(''):'<div class="empty">할인 코드가 없습니다</div>'}`;
   let ty='AMOUNT';
   m.querySelectorAll('[data-ct]').forEach(b=>b.onclick=()=>{ty=b.dataset.ct;m.querySelectorAll('[data-ct]').forEach(x=>x.classList.toggle('on',x===b));$('cfVL').textContent=ty==='PERCENT'?'할인율 (%)':'할인 금액 (원, 공급가 기준)';$('cfMaxL').hidden=ty!=='PERCENT'});
-  m.querySelectorAll('[data-cedit]').forEach(b=>b.onclick=()=>{const c=CPN.find(x=>x.code===b.dataset.cedit);$('cfCode').value=c.code;$('cfName').value=c.name;$('cfVal').value=c.value;$('cfMin').value=c.min||'';$('cfMax').value=c.max||'';$('cfExp').value=c.exp||'';$('cfFirst').value=c.total||'';$('cfPer').value=c.perClient||'';$('cfWeb').checked=c.channel!=='ALL';
+  m.querySelectorAll('[data-cedit]').forEach(b=>b.onclick=()=>{const c=CPN.find(x=>x.code===b.dataset.cedit);$('cfCode').value=c.code;$('cfName').value=c.name;$('cfVal').value=c.value;$('cfMin').value=c.min||'';$('cfMax').value=c.max||'';$('cfExp').value=c.exp||'';$('cfFirst').value=c.total||'';$('cfWeb').checked=c.channel!=='ALL';
     m.querySelector(`[data-ct="${c.type}"]`).click();scrollTo(0,0);$('cfCode').focus()});
   m.querySelectorAll('[data-tg]').forEach(b=>b.onclick=async()=>{const c=CPN.find(x=>x.code===b.dataset.tg);b.disabled=true;
     try{await call('adminToggleCoupon',{code:c.code,active:!c.active});c.active=!c.active;toast(`${c.code} ${c.active?'사용 시작':'사용 중지'}`);renderCpn()}catch(e){toast(e.message);b.disabled=false}});
@@ -651,7 +650,7 @@ async function renderCpn(force){
     if(!confirm(on?'할인쿠폰 기능을 켭니다. 주문 페이지에 할인 코드 칸이 바로 보입니다. 켤까요?':'할인쿠폰 기능을 끕니다. 주문 페이지에서 할인 코드 칸이 사라집니다. 끌까요?'))return;
     b.disabled=true;try{await call('adminSetCouponFeature',{on});CPON=on;toast(on?'할인쿠폰 기능 ON — 주문 페이지에 바로 반영됩니다':'할인쿠폰 기능 OFF — 숨김 처리했습니다');renderCpn()}catch(x){toast(x.message);b.disabled=false}};
   $('cfGo').onclick=async e=>{const b=e.target;b.disabled=true;
-    try{const r=await call('adminSaveCoupon',{code:$('cfCode').value,name:$('cfName').value,type:ty,value:$('cfVal').value,min:$('cfMin').value,max:$('cfMax').value,exp:$('cfExp').value,total:$('cfFirst').value,perClient:$('cfPer').value,channel:$('cfWeb').checked?'WEB_ONLY':'ALL'});
+    try{const r=await call('adminSaveCoupon',{code:$('cfCode').value,name:$('cfName').value,type:ty,value:$('cfVal').value,min:$('cfMin').value,max:$('cfMax').value,exp:$('cfExp').value,total:$('cfFirst').value,channel:$('cfWeb').checked?'WEB_ONLY':'ALL'});
       toast(`${r.code} ${r.created?'만들었습니다':'고쳤습니다'}`);renderCpn(true)}catch(x){toast(x.message);b.disabled=false}};
 }
 
