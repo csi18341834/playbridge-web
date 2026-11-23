@@ -228,6 +228,7 @@ const won=n=>Number(n||0).toLocaleString('ko-KR')+'원';
 const sIdx=s=>s===CANCEL?-1:STAGES.indexOf(s);
 const bCls=s=>s===CANCEL?'bx':'b'+Math.max(0,STAGES.indexOf(s));
 const store={get(k){try{return sessionStorage.getItem(k)}catch(e){return null}},set(k,v){try{v==null?sessionStorage.removeItem(k):sessionStorage.setItem(k,v)}catch(e){}}};
+const SHOW_STATS=false;   /* 통계 숨김 (2026-11-24 요청자 '잠시 안 보이게'): '📊 간단 통계' 탭 + 주문 탭 위 요약 4칸. 다시 보이게 하려면 true */
 let PIN=store.get('pb_admin')||'',S={orders:[],counts:{}},F='전체',Q='',TAB='ord',AGG='buy',STK=null,openPo='',STP='7d';
 
 /* 서버 호출 (text/plain → 사전요청 없이 Apps Script doPost) */
@@ -461,7 +462,9 @@ function renderAdminStats(orders){
 
 function render(){
   $('ordBar').hidden=TAB!=='ord';
-  $('adminStats').hidden=TAB!=='ord';if(TAB==='ord')renderAdminStats(S.orders);
+  if(!SHOW_STATS&&TAB==='sta')TAB='ord';
+  $('adminStats').hidden=!SHOW_STATS||TAB!=='ord';if(SHOW_STATS&&TAB==='ord')renderAdminStats(S.orders);
+  {const t=document.querySelector('[data-tab="sta"]');if(t)t.hidden=!SHOW_STATS;document.querySelector('.sub').style.gridTemplateColumns=`repeat(${SHOW_STATS?5:4},minmax(0,1fr))`}
   document.querySelectorAll('[data-tab]').forEach(b=>b.classList.toggle('on',b.dataset.tab===TAB));
   if(TAB==='ord')renderOrders();else if(TAB==='agg')renderAgg();else if(TAB==='sta')renderSta();else if(TAB==='cpn')renderCpn();else renderStk();
 }
