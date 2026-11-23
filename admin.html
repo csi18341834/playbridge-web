@@ -33,7 +33,7 @@ header{position:sticky;top:0;z-index:20;background:var(--y);padding:10px 16px 0;
 .top h1{flex:1;margin:0;font-size:18px;font-weight:900;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .top small{font-size:12px;font-weight:700;color:var(--sub)}
 .ib{min-height:40px;padding:0 12px;border:2px solid var(--ink);border-radius:12px;background:#fff;font-size:14px;font-weight:900;white-space:nowrap}
-.sub{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:4px;margin-top:10px}
+.sub{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:4px;margin-top:10px}
 .sub button{min-height:44px;border:0;border-radius:12px 12px 0 0;background:rgba(255,255,255,.55);font-size:14px;font-weight:900;line-height:1.2;padding:4px 2px}
 .sub button.on{background:var(--bg)}
 .bar{background:var(--bg);margin:0 -16px;padding:10px 16px 8px}
@@ -160,6 +160,22 @@ textarea{width:100%;min-height:84px;border:2px solid var(--line);border-radius:1
 .km .kmtot{display:flex;justify-content:space-between;font-weight:900;font-size:17px;margin:10px 0}.km .dup{border:2px solid #c00;border-radius:12px;padding:10px;margin:10px 0;background:#fff3f3;font-size:14px;line-height:1.5}
 .km .dup.warn{border-color:#e08a00;background:#fff8ec}.km .dup b{display:block;font-size:15px;margin-bottom:4px}.km .prev{max-width:100%;max-height:220px;border-radius:10px;margin-top:6px;display:block}
 .km textarea.rep{min-height:260px;font-size:14px;line-height:1.5}
+.fl.card{background:#e8f0ff;color:#1f4fbf}.fl.kk{background:#fff7c2;color:#5c4a00}.fl.cp{background:#ffe8f0;color:#b0124b}
+.sub button{font-size:13px}
+.km .drop{border:2px dashed var(--line);border-radius:12px;padding:12px;text-align:center;font-size:14px;line-height:1.5;background:#fff}.km .drop.on{border-color:var(--pk);background:#fff0f5}.km .drop input{margin-top:8px;max-width:100%}
+.km .kmchk,.kmchk{display:flex;gap:8px;align-items:flex-start;margin-top:10px;font-weight:700;font-size:15px;line-height:1.4}.kmchk input{width:22px;height:22px;flex:none}
+.km .abadge{display:inline-block;background:#eaf6ee;color:#13723a;border-radius:99px;padding:0 8px;font-size:12px;font-weight:900}
+.km .acmp{border:2px solid #e08a00;background:#fff8ec;border-radius:12px;padding:10px;margin:8px 0;font-size:14px;line-height:1.45}.km .acmp .ab{background:#fff;border-radius:8px;padding:6px 8px;margin:6px 0;word-break:keep-all}.km .acmp .ab span{display:block;font-size:12px;font-weight:900;color:var(--sub)}.km .acmp .ab.nw{border:2px solid #e08a00}
+.km .am{display:flex;gap:8px;align-items:flex-start;border:2px solid var(--line);border-radius:10px;padding:8px;margin:6px 0;background:#fff}.km .am.on{border-color:var(--pk);background:#fff0f5}.km .am b{display:block}
+.km .kmcp{display:flex;gap:6px}.km .kmcp input{flex:1;min-width:0;text-transform:uppercase}.km .kmcp .btn{flex:none;min-width:70px}
+.km .dcard{background:#fff;border-radius:10px;padding:8px;margin:6px 0;line-height:1.45}.km .dcard .why{color:#c00;font-weight:800}.km .dcard.new{border:2px dashed var(--line)}
+.proof{margin-top:10px}.proof a{display:block;text-decoration:none;font-weight:800}.proof img{display:block;max-width:100%;max-height:260px;border-radius:10px;margin-bottom:6px}
+.cpform label{display:block;font-weight:800;font-size:14px;margin:8px 0 0}.cpform input:not([type=checkbox]){display:block;width:100%;min-height:46px;border:2px solid var(--line);border-radius:12px;padding:0 12px;font-size:16px;margin-top:4px;background:#fff}
+.seg2{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:8px}
+.cpc{background:#fff;border-radius:16px;padding:12px;margin:10px 0;box-shadow:0 1px 3px rgba(0,0,0,.08)}.cpc.off{opacity:.6}.cpc .row1{display:flex;justify-content:space-between;gap:8px;align-items:center}
+.cpc .tg{flex:none;min-height:40px;border:0;border-radius:99px;padding:0 14px;font-weight:900;background:#eee}.cpc .tg.on{background:#13723a;color:#fff}
+.lnk{border:0;background:none;color:#1f4fbf;font-weight:800;text-decoration:underline;padding:4px 0;font-size:14px;min-height:32px}
+.sec.master{border:2px solid var(--line)}.sec.master h3{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
 </style>
 </head>
 <body>
@@ -181,6 +197,7 @@ textarea{width:100%;min-height:84px;border:2px solid var(--line);border-radius:1
       <button type="button" data-tab="agg">1688발주·<br>품목합계</button>
       <button type="button" data-tab="stk">재고·<br>입고알림</button>
       <button type="button" data-tab="sta">📊<br>간단 통계</button>
+      <button type="button" data-tab="cpn">🎟<br>할인 코드</button>
     </div>
     <div class="bar" id="ordBar">
       <button class="btn w pk kmopen" type="button" id="kmOpen">＋ 카톡 주문 등록</button>
@@ -252,7 +269,7 @@ const kday=t=>Math.floor((t+9*3600e3)/864e5);
 function unpaidDays(o){return o.status===STAGES[0]&&o.ts?kday(Date.now())-kday(o.ts):0}
 function card(o){
   const i=sIdx(o.status),first=nm((o.items[0]||{}).n),dn=unpaidDays(o);
-  const flags=(o.partial?'<span class="fl red">부분발송</span>':'')+(dn>=2?`<span class="fl warn">미입금 D+${dn}일</span>`:'');
+  const flags=(o.card?`<span class="fl card">💳 법인카드 요청${o.payLink?' · 링크 저장됨':''}</span>`:'')+(o.route==='카톡'?'<span class="fl kk">💬 카톡</span>':'')+(o.coupon?`<span class="fl cp">🎟 ${esc(o.coupon)}</span>`:'')+(o.partial?'<span class="fl red">부분발송</span>':'')+(dn>=2&&!o.card?`<span class="fl warn">미입금 D+${dn}일</span>`:'');
   const nextBtn=i>=0&&i<5?`<div class="next"><button type="button" class="n${i}" data-next="${esc(o.po)}">${NEXT_LABEL[i]}</button></div>`:'';
   return `<article class="card" id="c-${esc(o.po)}">
     <button type="button" class="hd" data-open="${esc(o.po)}" aria-label="${esc(o.shop)} 주문 자세히 보기">
@@ -298,6 +315,12 @@ function detail(po,focusInv){
     <div class="cxbox" id="cxBox" hidden><label><input type="checkbox" id="rst" checked> 재고 칸(숫자)도 ${o.status===CANCEL?'다시 차감':'되돌리기'}</label><button class="btn w" type="button" id="cxGo" style="margin-top:8px;background:#c00">${o.status===CANCEL?'되돌리기 확정':'취소 확정'}</button></div>
   </div>
   ${o.memo?`<div class="req" style="margin:0 0 12px">요청사항: ${esc(o.memo)}</div>`:''}
+  <div class="sec"><h3>${o.card?'💳 법인카드 결제링크 · 안내문':'입금 안내문'}</h3>
+    ${o.card?`<input class="f" id="plink" type="url" inputmode="url" autocomplete="off" placeholder="https:// 카드 결제링크 붙여넣기" value="${esc(o.payLink||'')}" aria-label="카드 결제링크">
+      <button class="btn w" type="button" id="plGo" style="margin-top:8px">결제링크 저장</button>`:''}
+    <button class="btn w pk" type="button" id="repCp" style="margin-top:8px">${o.card?'결제링크 포함 카톡 안내문 복사':'카톡 입금 안내문 다시 복사'}</button>
+    ${o.proof?`<div class="proof"><a href="${esc(o.proof)}" target="_blank" rel="noopener">${(m=>m?`<img src="https:\/\/lh3.googleusercontent.com/d/${m[1]}=w600" alt="카톡 증빙 사진" onerror="this.remove()">`:'')(o.proof.match(/\/d\/([\w-]{20,})/))}<span>📎 카톡 증빙 사진 열기</span></a></div>`:''}
+  </div>
   <div class="sec"><h3>관리메모 <small style="font-weight:700;color:var(--sub);font-size:13px">1688 주문번호·배대지 등</small></h3>
     <div class="qchips">${['1688 주문번호: ','배대지 입고완료','배대지 송장: ','일부 품목 내일 출고'].map(q=>`<button type="button" data-q="${esc(q)}">${esc(q.replace(/: $/,''))}</button>`).join('')}</div>
     <textarea id="am" placeholder="메모를 적고 저장을 누르세요">${esc(o.adminMemo)}</textarea>
@@ -311,7 +334,7 @@ function detail(po,focusInv){
     <label class="chk"><input type="checkbox" id="part" ${o.partial?'checked':''}> 부분 발송 (미발송 잔여 품목 있음)</label>
   </div>
   <div class="sec"><h3>품목 ${o.items.length}종 · ${o.packs}팩</h3><ul class="items">${o.items.map(t=>{const x=nm(t.n);return `<li><span>${esc(x.main)}${x.op?`<span class="op">${esc(x.op)}</span>`:''}${x.pa?`<span class="ps">${esc(x.pa)} · ${esc(t.unit)}</span>`:''}</span><b>${t.q}팩<br><small style="font-weight:700">${won(t.sum)}</small></b></li>`}).join('')}</ul>
-    <div class="kv"><span>상품</span><span>${won(o.sub)}</span></div><div class="kv"><span>배송비</span><span>${o.ship?won(o.ship):'무료'}</span></div><div class="kv t"><span>합계</span><span>${won(o.total)}</span></div></div>
+    <div class="kv"><span>상품</span><span>${won(o.sub)}</span></div>${o.disc?`<div class="kv" style="color:#c00"><span>할인 ${esc(o.coupon)}</span><span>-${won(Math.round(o.disc*1.1))}</span></div>`:''}<div class="kv"><span>배송비</span><span>${o.ship?won(o.ship):'무료'}</span></div><div class="kv t"><span>합계</span><span>${won(o.total)}</span></div></div>
   ${(o.history||[]).length?`<div class="sec"><h3>변경 이력</h3><ul class="hist">${o.history.slice().reverse().map(h=>`<li>${esc(h)}</li>`).join('')}</ul></div>`:''}
   <div class="sec"><h3>배송지 · 연락처</h3><div class="addr">${esc(o.addr||'-')}</div><div class="addr" style="margin-top:4px;font-weight:700">${esc(o.tel)}</div>
     <div class="contact"><a href="tel:${esc(o.tel.replace(/[^0-9+]/g,''))}">📞 전화 걸기</a><button type="button" id="addrCp">주소 복사</button></div></div>`;
@@ -332,6 +355,10 @@ function detail(po,focusInv){
     try{const r=await call('adminUpdateStatus',{po,partial:v});putOrder(r.order);render();toast(v?'부분발송으로 표시했습니다':'부분발송 표시를 껐습니다')}catch(x){c.checked=!v;toast(x.message)}finally{c.disabled=false}});
   if($('kakao'))$('kakao').addEventListener('click',()=>copy(shipMsg(o),'발송안내 멘트를 복사했습니다. 카톡에 붙여넣어 주세요'));
   $('addrCp').addEventListener('click',()=>copy(o.addr,'주소를 복사했습니다'));
+  $('repCp').addEventListener('click',async e=>{const b=e.target;b.disabled=true;
+    try{const r=await call('adminReplyMessage',{po});copy(r.replyMessage,'안내문을 복사했습니다. 카톡에 붙여넣어 주세요')}catch(x){toast(x.message)}finally{b.disabled=false}});
+  if($('plGo'))$('plGo').addEventListener('click',async e=>{const b=e.target,v=$('plink').value.trim();if(v&&!/^https:\/\//i.test(v)){toast('https:// 로 시작하는 결제링크를 넣어 주세요');return}b.disabled=true;
+    try{const r=await call('adminUpdateStatus',{po,payLink:v});putOrder(r.order);render();toast(v?'결제링크를 저장했습니다':'결제링크를 지웠습니다');detail(po)}catch(x){toast(x.message);b.disabled=false}});
   if(focusInv){const f=$('inv');f.scrollIntoView({block:'center'});setTimeout(()=>f.focus(),150)}
 }
 function shipMsg(o){
@@ -429,7 +456,7 @@ function render(){
   $('ordBar').hidden=TAB!=='ord';
   $('adminStats').hidden=TAB!=='ord';if(TAB==='ord')renderAdminStats(S.orders);
   document.querySelectorAll('[data-tab]').forEach(b=>b.classList.toggle('on',b.dataset.tab===TAB));
-  if(TAB==='ord')renderOrders();else if(TAB==='agg')renderAgg();else if(TAB==='sta')renderSta();else renderStk();
+  if(TAB==='ord')renderOrders();else if(TAB==='agg')renderAgg();else if(TAB==='sta')renderSta();else if(TAB==='cpn')renderCpn();else renderStk();
 }
 
 /* ---------- 카톡 주문 등록 ---------- */
@@ -449,12 +476,14 @@ function kmGuess(text){
   return Object.keys(out).map(c=>({c,q:out[c],o1:'',o2:''}));
 }
 function kmPane(){
-  KM={P:KM&&KM.P,CFG:KM&&KM.CFG,img:'',rows:[],match:null};openPo='';
+  KM={P:KM&&KM.P,CFG:KM&&KM.CFG,img:'',rows:[],match:null,newAddr:'',addrMode:'',cp:null};openPo='';
   $('pT').textContent='카톡 주문 등록';
   $('pB').innerHTML=`<div class="km">
     <label class="l" for="kmNick">카톡 닉네임</label><input type="text" id="kmNick" placeholder="예: 행복뽑기 김사장">
-    <label class="l" for="kmText">카톡 주문 내용 (붙여넣기)</label><textarea id="kmText" placeholder="사장님이 보낸 카톡 글을 그대로 붙여넣으세요"></textarea>
-    <label class="l" for="kmImg">카톡 캡처·상품 사진 (선택, 증빙으로 저장)</label><input type="file" id="kmImg" accept="image/*"><img class="prev" id="kmPrev" hidden alt="">
+    <label class="l" for="kmText">카톡 주문 내용 (여러 메시지 한꺼번에 붙여넣어도 됨)</label><textarea id="kmText" placeholder="사장님이 보낸 카톡 글을 그대로 붙여넣으세요"></textarea>
+    <label class="l" for="kmImg">카톡 캡처·상품 사진 (선택, 증빙으로 저장)</label>
+    <div class="drop" id="kmDrop" tabindex="0"><b>📎 사진을 여기로 끌어다 놓거나 Ctrl+V로 붙여넣기</b><span class="ps">또는 아래에서 파일 고르기 · 큰 사진은 1600px로 줄여서 보냅니다</span><input type="file" id="kmImg" accept="image/*"></div>
+    <div id="kmPrevBox" hidden><img class="prev" id="kmPrev" alt="첨부한 캡처"><button class="btn ghost" type="button" id="kmImgX" style="margin-top:6px">사진 빼기</button></div>
     <button class="btn w" type="button" id="kmFind" style="margin-top:10px">거래처·상품 찾기</button>
     <div id="kmStep" hidden>
       <h4>① 거래처 확인</h4><div id="kmCands"></div>
@@ -462,35 +491,75 @@ function kmPane(){
       <label class="l" for="kmWho">주문자 이름</label><input type="text" id="kmWho">
       <label class="l" for="kmTel">연락처 *</label><input type="tel" id="kmTel">
       <label class="l" for="kmAddr">배송 주소 *</label><input type="text" id="kmAddr">
-      <label style="display:flex;gap:8px;align-items:center;margin-top:8px;font-weight:700"><input type="checkbox" id="kmUpd"> 이 연락처·주소를 거래처 기본값으로 저장</label>
+      <div id="kmAddrCmp"></div>
+      <label class="kmchk" id="kmUpdRow"><input type="checkbox" id="kmUpd"> 이 연락처·주소를 거래처 기본값으로 저장</label>
       <h4>② 상품·수량 (팩)</h4><div id="kmItems"></div><button class="btn w ghost" type="button" id="kmAdd">＋ 상품 추가</button>
+      <div id="kmCpRow" hidden><label class="l" for="kmCpIn">할인 코드 (선택 · 적용채널 ALL 코드만)</label><div class="kmcp"><input type="text" id="kmCpIn" placeholder="예: OPEN10000" autocomplete="off"><button class="btn" type="button" id="kmCpGo">적용</button></div><div class="ps" id="kmCpMsg"></div></div>
+      <label class="kmchk"><input type="checkbox" id="kmCard"> 💳 법인/신용카드 결제 요청 (결제링크로 받기)</label>
       <div class="kmtot" id="kmTot"></div>
       <label class="l" for="kmMemo">메모 (선택)</label><input type="text" id="kmMemo" placeholder="예: 입금은 내일 예정">
       <div id="kmDup"></div><div class="err" id="kmErr" style="color:#c00;font-weight:700;margin:8px 0"></div>
       <button class="btn w pk" type="button" id="kmGo">주문 등록</button>
     </div><div id="kmDone"></div></div>`;
   openPane();
-  $('kmImg').addEventListener('change',e=>{const f=e.target.files[0];if(!f)return;const rd=new FileReader();rd.onload=()=>{const im=new Image();im.onload=()=>{const k=Math.min(1,1600/Math.max(im.width,im.height)),c=document.createElement('canvas');c.width=Math.round(im.width*k);c.height=Math.round(im.height*k);c.getContext('2d').drawImage(im,0,0,c.width,c.height);KM.img=c.toDataURL('image/jpeg',0.85);$('kmPrev').src=KM.img;$('kmPrev').hidden=false};im.src=rd.result};rd.readAsDataURL(f)});
+  $('kmImg').addEventListener('change',e=>kmSetImg(e.target.files[0]));
+  const d=$('kmDrop');
+  ['dragenter','dragover'].forEach(t=>d.addEventListener(t,e=>{e.preventDefault();d.classList.add('on')}));
+  ['dragleave','drop'].forEach(t=>d.addEventListener(t,e=>{e.preventDefault();d.classList.remove('on')}));
+  d.addEventListener('drop',e=>{const f=[...(e.dataTransfer.files||[])].find(x=>/^image\//.test(x.type));if(f)kmSetImg(f);else toast('사진 파일만 넣을 수 있어요')});
+  $('kmImgX').addEventListener('click',()=>{KM.img='';$('kmPrevBox').hidden=true;$('kmImg').value=''});
   $('kmFind').addEventListener('click',kmFind);
 }
+/* 캡처 붙여넣기 (Ctrl+V): 카톡 주문 창이 열려 있을 때만 */
+document.addEventListener('paste',e=>{if(!KM||$('pane').hidden||!$('kmDrop'))return;const it=[...((e.clipboardData||{}).items||[])].find(x=>/^image\//.test(x.type));if(!it)return;e.preventDefault();kmSetImg(it.getAsFile())});
+function kmSetImg(f){if(!f)return;if(!/^image\//.test(f.type)){toast('사진 파일만 넣을 수 있어요');return}
+  const rd=new FileReader();rd.onload=()=>{const im=new Image();im.onload=()=>{const k=Math.min(1,1600/Math.max(im.width,im.height)),c=document.createElement('canvas');c.width=Math.round(im.width*k);c.height=Math.round(im.height*k);c.getContext('2d').drawImage(im,0,0,c.width,c.height);KM.img=c.toDataURL('image/jpeg',0.85);$('kmPrev').src=KM.img;$('kmPrevBox').hidden=false;toast('사진을 첨부했습니다')};im.src=rd.result};rd.readAsDataURL(f)}
+/* 카톡 글 속 주소 한 줄 찾기 (시·도로 시작하고 구·시·군이 있는 줄) */
+const KM_SIDO='서울|부산|대구|인천|광주|대전|울산|세종|경기|강원|충북|충남|충청|전북|전남|전라|경북|경남|경상|제주';
+function kmAddrFromText(t){
+  const L=String(t||'').split('\n').map(x=>x.trim());
+  for(const l of L){const m=l.match(new RegExp('(?:^|[\\s:：])((?:'+KM_SIDO+')\\S*\\s+\\S+(?:시|군|구)\\s[^\\n]{2,})'));if(m)return m[1].replace(/^주소\s*[:：]?\s*/,'').trim()}
+  return '';
+}
+const kmNormA=a=>String(a||'').replace(/\([^)]*\)/g,'').replace(/[\s,.-]/g,'').replace(/특별시|광역시|특별자치시|특별자치도/g,'').replace(/^서울시/,'서울');
 async function kmFind(){
   const b=$('kmFind');b.disabled=true;b.textContent='찾는 중…';
   try{
     await kmProducts();
-    const r=await call('adminLookupCustomerMatch',{kakaoNick:$('kmNick').value.trim(),rawText:$('kmText').value});
+    KM.newAddr=kmAddrFromText($('kmText').value);
+    const r=await call('adminLookupCustomerMatch',{kakaoNick:$('kmNick').value.trim(),rawText:$('kmText').value,addrHint:KM.newAddr});
     const L=[...r.exact.map(c=>Object.assign({ex:1},c)),...r.candidates];KM.cands=L;
-    $('kmCands').innerHTML=(L.length?L.map((c,i)=>`<label class="cand${i===0&&c.ex?' on':''}"><input type="radio" name="kmC" value="${i}"${i===0&&c.ex?' checked':''}><span><b>${esc(c.shop)}</b> ${esc(c.who||'')}${c.ex?' <span class="badge b5">일치</span>':''}<span class="ps">${esc(c.tel)} · ${esc(c.addr)}</span><span class="ps">${esc(c.why||'')}${c.kakaoNick?' · 닉네임 '+esc(c.kakaoNick):''}${c.lastOrder?' · 최근 주문 '+esc(c.lastOrder):''}</span></span></label>`).join(''):'<div class="ps">등록된 거래처에서 찾지 못했습니다 → 새 거래처로 등록됩니다</div>')+
+    $('kmCands').innerHTML=(L.length?L.map((c,i)=>`<label class="cand${i===0&&c.ex?' on':''}"><input type="radio" name="kmC" value="${i}"${i===0&&c.ex?' checked':''}><span><b>${esc(c.shop)}</b> ${esc(c.who||'')}${c.ex?' <span class="badge b5">일치</span>':' <span class="badge b0">후보</span>'}<span class="ps">${esc(c.tel)}</span>${c.addr?`<span class="ps"><span class="abadge">📍 등록 주소</span> ${esc(c.addr)}</span>`:''}<span class="ps">${esc(c.why||'')}${c.kakaoNick?' · 닉네임 '+esc(c.kakaoNick):''}${c.lastOrder?' · 최근 주문 '+esc(c.lastOrder):''}</span></span></label>`).join(''):'<div class="ps">등록된 거래처에서 찾지 못했습니다 → 새 거래처로 등록됩니다</div>')+
       `<label class="cand${L.length&&!L[0].ex||!L.length?' on':''}"><input type="radio" name="kmC" value="new"${L.length&&!L[0].ex||!L.length?' checked':''}><span><b>새 거래처로 등록</b><span class="ps">아래 칸에 직접 입력</span></span></label>`;
     $('kmCands').querySelectorAll('input[name=kmC]').forEach(x=>x.addEventListener('change',kmPick));kmPick();
     if(!$('kmTel').value){const m=$('kmText').value.match(/01[016789][-\s.]?\d{3,4}[-\s.]?\d{4}/);if(m)$('kmTel').value=m[0]}
     KM.rows=kmGuess($('kmText').value);if(!KM.rows.length)KM.rows=[{c:'',q:3,o1:'',o2:''}];kmItems();
     $('kmStep').hidden=false;$('kmAdd').onclick=()=>{KM.rows.push({c:'',q:3,o1:'',o2:''});kmItems()};$('kmGo').onclick=()=>kmSend(false);
+    $('kmAddr').onchange=()=>{const v=$('kmAddr').value.trim();if(KM.match&&v&&kmNormA(v)!==kmNormA(KM.match.addr)&&v!==KM.newAddr){KM.newAddr=v;KM.addrMode='';kmAddrCard()}};
+    $('kmCpRow').hidden=!(KM.CFG&&KM.CFG.couponFeatureEnabled===true);$('kmCpGo').onclick=kmCoupon;$('kmCpIn').oninput=()=>{KM.cp=null;$('kmCpMsg').textContent='';kmTotal()};
   }catch(e){toast(e.message)}finally{b.disabled=false;b.textContent='거래처·상품 다시 찾기'}
 }
 function kmPick(){const v=($('kmCands').querySelector('input[name=kmC]:checked')||{}).value;$('kmCands').querySelectorAll('.cand').forEach(l=>l.classList.toggle('on',!!l.querySelector('input:checked')));
-  const c=v!=null&&v!=='new'?KM.cands[+v]:null;KM.match=c;
+  const c=v!=null&&v!=='new'?KM.cands[+v]:null;KM.match=c;KM.addrMode='';
   if(c){$('kmShop').value=c.shop;$('kmWho').value=c.who;$('kmTel').value=c.tel;$('kmAddr').value=c.addr}
-  else if(v==='new'){['kmShop','kmWho','kmAddr'].forEach(i=>$(i).value='')}}
+  else if(v==='new'){['kmShop','kmWho'].forEach(i=>$(i).value='');$('kmAddr').value=KM.newAddr||''}
+  kmAddrCard()}
+/* 주소 변경 감지: 등록 주소와 카톡에 적힌 주소가 다르면 비교 카드 → 기존 / 이번만 새 주소 / 기본 주소 업데이트 중 고르기 */
+function kmAddrCard(){
+  const c=KM.match,box=$('kmAddrCmp'),diff=!!(c&&c.addr&&KM.newAddr&&kmNormA(c.addr)!==kmNormA(KM.newAddr));
+  $('kmUpdRow').hidden=diff||!c;
+  if(!diff){box.innerHTML='';if(c&&!KM.newAddr)$('kmUpd').checked=false;return}
+  const m=KM.addrMode,opt=(v,t,s)=>`<label class="am${m===v?' on':''}"><input type="radio" name="kmAm" value="${v}"${m===v?' checked':''}><span><b>${t}</b><span class="ps">${s}</span></span></label>`;
+  box.innerHTML=`<div class="acmp"><b>⚠️ [주소 변경 감지] 카톡 주소가 등록 주소와 다릅니다</b>
+    <div class="ab"><span>기존 등록 주소</span>${esc(c.addr)}</div><div class="ab nw"><span>새 입력 주소</span>${esc(KM.newAddr)}</div>
+    ${opt('once','이번만 새 주소 출고','거래처 기본 주소는 그대로')}${opt('update','거래처 기본 주소 업데이트','새 주소로 출고 + 거래처_마스터 주소·연락처 갱신')}${opt('old','기존 등록 주소로 출고','카톡 주소는 무시')}
+    ${m?'':'<div class="ps" style="color:#c00;font-weight:800">위 세 가지 중 하나를 골라 주세요</div>'}</div>`;
+  box.querySelectorAll('input[name=kmAm]').forEach(x=>x.addEventListener('change',()=>{KM.addrMode=x.value;
+    $('kmAddr').value=x.value==='old'?c.addr:KM.newAddr;$('kmUpd').checked=x.value==='update';kmAddrCard()}));
+}
+function kmItemsObj(){const items={};let bad='';
+  KM.rows.forEach(r=>{const p=KM.P.find(x=>x.c===r.c);if(!p||!(r.q>0))return;if(p.opts.length&&!r.o1||p.opts2.length&&!r.o2)bad=kmShort(p.n)+' 옵션을 골라 주세요.';const k=p.c+(p.opts.length||p.opts2.length?'|'+(r.o1||'')+'|'+(r.o2||''):'');items[k]=(items[k]||0)+r.q});
+  return{items,bad}}
 function kmItems(){
   const opt=(arr,cur,ph)=>`<select data-o><option value="">${ph}</option>${arr.map(o=>`<option${o===cur?' selected':''}>${esc(o)}</option>`).join('')}</select>`;
   $('kmItems').innerHTML=KM.rows.map((r,i)=>{const p=KM.P.find(x=>x.c===r.c);return `<div class="it" data-i="${i}">
@@ -504,29 +573,86 @@ function kmItems(){
     const a=el.querySelector('[data-o1]'),b=el.querySelector('[data-o2]');if(a)a.onchange=e=>{r.o1=e.target.value};if(b)b.onchange=e=>{r.o2=e.target.value}});
   kmTotal();
 }
+const kmSig=()=>JSON.stringify(kmItemsObj().items);
 function kmTotal(){const sub=KM.rows.reduce((a,r)=>{const p=KM.P.find(x=>x.c===r.c);return a+(p?p.price*r.q:0)},0),C=KM.CFG||{};
-  const ship=sub&&sub<(C.freeShip||0)?(C.shipFee||0):0;$('kmTot').innerHTML=`<span>입금액 (VAT·배송비 포함)</span><span>${won(sub+ship)}</span>`;
+  const ship=sub&&sub<(C.freeShip||0)?(C.shipFee||0):0,cp=KM.cp&&KM.cp.sig===kmSig()?KM.cp:null;
+  if(KM.cp&&!cp){KM.cp=null;$('kmCpMsg').textContent='상품이 바뀌어 할인 코드를 다시 [적용]해 주세요'}
+  $('kmTot').innerHTML=`<span>${$('kmCard')&&$('kmCard').checked?'결제':'입금'}액 (VAT·배송비 포함)${cp?`<small class="ps">할인 ${esc(cp.code)} -${won(cp.discVat)} 반영</small>`:''}</span><span>${won(sub+ship-(cp?cp.discVat:0))}</span>`;
   $('kmTot').title=sub<(C.minOrder||0)?'최소 주문금액 미달':''}
+async function kmCoupon(){const code=$('kmCpIn').value.trim(),{items,bad}=kmItemsObj();
+  if(!code){$('kmCpMsg').textContent='할인 코드를 적어 주세요';return}if(bad||!Object.keys(items).length){$('kmCpMsg').textContent=bad||'상품을 먼저 골라 주세요';return}
+  $('kmCpMsg').textContent='확인 중…';
+  try{const r=await call('validateCoupon',{code,items,channel:'KAKAO',shop:$('kmShop').value.trim(),tel:$('kmTel').value.trim()});KM.cp={code:r.code,discVat:r.discVat,disc:r.disc,sig:kmSig()};$('kmCpIn').value=r.code;$('kmCpMsg').textContent='✅ '+r.msg}
+  catch(e){KM.cp=null;$('kmCpMsg').textContent='❌ '+e.message}
+  kmTotal()}
 async function kmSend(force){
-  const items={};let bad='';
-  KM.rows.forEach(r=>{const p=KM.P.find(x=>x.c===r.c);if(!p||!(r.q>0))return;if(p.opts.length&&!r.o1||p.opts2.length&&!r.o2)bad=kmShort(p.n)+' 옵션을 골라 주세요.';const k=p.c+(p.opts.length||p.opts2.length?'|'+(r.o1||'')+'|'+(r.o2||''):'');items[k]=(items[k]||0)+r.q});
+  const {items,bad}=kmItemsObj();
   if(bad){$('kmErr').textContent=bad;return}if(!Object.keys(items).length){$('kmErr').textContent='상품을 골라 주세요.';return}
-  if(force&&KM.dupLevel==='BLOCK'&&!confirm('같은 주문이 이미 있습니다. 정말 한 번 더 등록할까요? (재고도 다시 차감됩니다)'))return;
+  if($('kmAddrCmp').innerHTML&&!KM.addrMode){$('kmErr').textContent='주소 변경 감지: 어느 주소로 보낼지 골라 주세요.';$('kmAddrCmp').scrollIntoView({block:'center'});return}
+  if($('kmCpIn').value.trim()&&!(KM.cp&&KM.cp.sig===kmSig())){$('kmErr').textContent='할인 코드 [적용]을 눌러 확인해 주세요. (안 쓰면 칸을 비워 주세요)';return}
   const b=$('kmGo');b.disabled=true;b.textContent='등록 중…';$('kmErr').textContent='';
   try{
     const r=await call('adminCreateKakaoOrder',{kakaoNick:$('kmNick').value.trim(),rawText:$('kmText').value,imageBase64:KM.img,shop:$('kmShop').value.trim(),who:$('kmWho').value.trim(),
-      tel:$('kmTel').value.trim(),addr:$('kmAddr').value.trim(),items,memo:$('kmMemo').value.trim(),forceDuplicate:!!force,updateDefaultAddr:$('kmUpd').checked,clientRow:KM.match?KM.match.row:''});
+      tel:$('kmTel').value.trim(),addr:$('kmAddr').value.trim(),items,memo:$('kmMemo').value.trim(),forceDuplicate:!!force,updateDefaultAddr:$('kmUpd').checked,clientRow:KM.match?KM.match.row:'',
+      couponCode:KM.cp?KM.cp.code:'',payMethod:$('kmCard').checked?'card':''});
     if(r.duplicateWarning){KM.dupLevel=r.level;
-      $('kmDup').innerHTML=`<div class="dup${r.level==='WARN'?' warn':''}"><b>${r.level==='BLOCK'?'⛔ 같은 주문이 이미 있습니다':'⚠️ 비슷한 주문이 있습니다'} — 아직 저장하지 않았어요</b>${r.matches.map(m=>`${esc(m.po)} · ${esc(m.date)} · ${esc(m.shop)} · ${won(m.total)} · ${esc(m.status)}<br><span class="ps">${esc(m.reason)} — ${esc(m.items)}</span>`).join('<br>')}
-        <button class="btn w ghost" type="button" id="kmForce" style="margin-top:8px">확인했어요, 그래도 등록</button></div>`;
+      $('kmDup').innerHTML=`<div class="dup${r.level==='WARN'?' warn':''}"><b>${r.level==='BLOCK'?'⛔ 같은 주문이 이미 있습니다':'⚠️ 비슷한 주문이 있습니다'} — 아직 저장하지 않았어요</b>
+        ${r.matches.map(m=>`<div class="dcard"><div><b>${esc(m.po)}</b> · ${esc(m.date)} · ${esc(m.status)}</div><div>${esc(m.shop)} · ${won(m.total)}</div><div class="ps">${esc(m.items)}</div><div class="why">사유: ${esc(m.reason)}</div></div>`).join('')}
+        <div class="dcard new"><div><b>지금 등록하려는 주문</b> · ${won(r.total)}</div><div class="ps">${esc(Object.keys(items).map(k=>k.replace(/\|+$/,'')+' '+items[k]+'팩').join(', '))}</div></div>
+        <label class="kmchk"><input type="checkbox" id="kmDupOk"> 위 기존 주문과 다른 <b>새 주문</b>임을 확인했습니다 (재고도 다시 차감됩니다)</label>
+        <button class="btn w ghost" type="button" id="kmForce" style="margin-top:8px" disabled>확인 후 그래도 등록</button></div>`;
+      $('kmDupOk').onchange=e=>{$('kmForce').disabled=!e.target.checked};
       $('kmForce').onclick=()=>kmSend(true);b.disabled=false;b.textContent='주문 등록';$('kmDup').scrollIntoView({block:'center'});return}
     $('kmStep').hidden=true;$('kmFind').hidden=true;
     $('kmDone').innerHTML=`<p class="ok" style="font-weight:900;font-size:17px">✅ ${esc(r.po)} 등록 완료${r.forced?' (중복 확인 후 등록)':''}</p>${r.proof?`<p class="ps"><a href="${esc(r.proof)}" target="_blank" rel="noopener">증빙 사진 보기</a></p>`:''}
-      <label class="l">사장님께 보낼 입금 안내</label><textarea class="rep" id="kmRep" readonly>${esc(r.replyMessage)}</textarea>
-      <button class="btn w pk" type="button" id="kmCp">안내문 복사 (카톡에 붙여넣기)</button>`;
+      <label class="l">사장님께 보낼 ${r.card?'결제':'입금'} 안내</label><textarea class="rep" id="kmRep" readonly>${esc(r.replyMessage)}</textarea>
+      <button class="btn w pk" type="button" id="kmCp">카톡 안내문 원클릭 복사</button>
+      ${r.card?'<p class="ps">카드 결제링크를 만든 뒤 주문 상세 창에 링크를 저장하면, 링크가 들어간 안내문을 다시 복사할 수 있어요.</p>':''}`;
     $('kmCp').onclick=()=>copy(r.replyMessage,'안내문을 복사했습니다. 카톡에 붙여넣어 주세요');
     load();
   }catch(e){$('kmErr').textContent=e.message;b.disabled=false;b.textContent='주문 등록'}
+}
+
+/* ---------- 할인 코드(쿠폰) 관리 ---------- */
+let CPN=null,CPON=false;
+async function renderCpn(force){
+  const m=$('main');
+  if(!CPN||force){m.innerHTML='<div class="spin">불러오는 중…</div>';try{const r=await call('adminCoupons',{});CPN=r.coupons;CPON=r.featureOn===true}catch(e){m.innerHTML=`<div class="empty">${esc(e.message)}</div>`;return}}
+  if(TAB!=='cpn')return;
+  m.innerHTML=`<div class="sec master"><h3>할인쿠폰 기능 전체 <span class="badge ${CPON?'b5':'bx'}" id="cpState">${CPON?'ON (가동 중)':'OFF (숨김 중)'}</span></h3>
+      <p class="ps">${CPON?'주문 페이지 주문서에 할인 코드 칸이 보이고, 아래 \'사용 중\' 코드를 쓸 수 있어요.':'주문 페이지에 할인 코드 칸이 전혀 보이지 않아요. 켜면 아래 \'사용 중\' 코드가 바로 쓰입니다.'}</p>
+      <button class="btn w ${CPON?'ghost':'pk'}" type="button" id="cpMaster">${CPON?'할인쿠폰 기능 끄기 (OFF · 숨김)':'할인쿠폰 기능 켜기 (ON · 가동)'}</button></div>
+    <div class="sec"><h3>🎟 새 할인 코드 만들기</h3><div class="cpform">
+      <label>코드 (영문·숫자)<input id="cfCode" placeholder="예: OPEN10000" autocomplete="off"></label>
+      <label>쿠폰 이름<input id="cfName" placeholder="예: 오픈기념 1만원 할인"></label>
+      <div class="seg seg2" id="cfType"><button type="button" data-ct="AMOUNT" class="on">정액 (원)</button><button type="button" data-ct="PERCENT">정률 (%)</button></div>
+      <label><span id="cfVL">할인 금액 (원, 공급가 기준)</span><input id="cfVal" type="number" inputmode="numeric" min="1"></label>
+      <label>최소 주문금액 (공급가, 원)<input id="cfMin" type="number" inputmode="numeric" placeholder="없으면 비워 두기"></label>
+      <label id="cfMaxL" hidden>최대 할인 금액 (원)<input id="cfMax" type="number" inputmode="numeric" placeholder="없으면 비워 두기"></label>
+      <label>만료일<input id="cfExp" type="date"></label>
+      <label>총 발행 수량 (선착순)<input id="cfFirst" type="number" inputmode="numeric" placeholder="없으면 비워 두기"></label>
+      <label>거래처(연락처·상호)당 사용 횟수<input id="cfPer" type="number" inputmode="numeric" value="1" placeholder="없으면 비워 두기"></label>
+      <label class="kmchk"><input type="checkbox" id="cfWeb" checked> 주문 페이지 직접 주문 전용 (WEB_ONLY · 끄면 카톡 등록에도 사용 가능)</label>
+      <button class="btn w pk" type="button" id="cfGo">할인 코드 저장</button><p class="ps">같은 코드로 저장하면 내용이 고쳐집니다 (사용 수는 유지). 할인은 공급가에서 빼고 VAT를 다시 붙입니다.</p></div></div>
+    ${CPN.length?CPN.map(c=>`<article class="cpc${c.active?'':' off'}"><div class="row1"><div class="who">${esc(c.code)} <small>${esc(c.name)}</small></div>
+        <button type="button" class="tg${c.active?' on':''}" data-tg="${esc(c.code)}" aria-pressed="${c.active}">${c.active?'사용 중':'중지됨'}</button></div>
+      <div class="ps">${c.type==='PERCENT'?`${c.value}% 할인${c.max?` (최대 ${won(c.max)})`:''}`:`${won(c.value)} 할인`} · 최소 ${c.min?won(c.min):'없음'}(공급가) · ${c.channel==='ALL'?'웹·카톡':'웹 주문 전용'} · 거래처당 ${c.perClient?c.perClient+'회':'제한 없음'} · 만료 ${esc(c.exp||'없음')}</div>
+      <div class="kv"><span>사용</span><span>${c.used}회${c.total?` / ${c.total}장`:''} · 할인 합계 ${won(c.discSum)}</span></div>
+      ${c.active&&!CPON?'<div class="ps" style="color:#b06a00;font-weight:800">전체 스위치가 OFF라 고객에게는 아직 안 보여요</div>':''}
+      ${c.orders.length?`<ul class="hist">${c.orders.map(o=>`<li>${esc(o.date)} · <button type="button" class="lnk" data-open="${esc(o.po)}">${esc(o.po)}</button> · ${esc(o.shop)} · -${won(o.disc)}</li>`).join('')}</ul>`:''}
+      <button type="button" class="lnk" data-cedit="${esc(c.code)}">내용 고치기</button></article>`).join(''):'<div class="empty">할인 코드가 없습니다</div>'}`;
+  let ty='AMOUNT';
+  m.querySelectorAll('[data-ct]').forEach(b=>b.onclick=()=>{ty=b.dataset.ct;m.querySelectorAll('[data-ct]').forEach(x=>x.classList.toggle('on',x===b));$('cfVL').textContent=ty==='PERCENT'?'할인율 (%)':'할인 금액 (원, 공급가 기준)';$('cfMaxL').hidden=ty!=='PERCENT'});
+  m.querySelectorAll('[data-cedit]').forEach(b=>b.onclick=()=>{const c=CPN.find(x=>x.code===b.dataset.cedit);$('cfCode').value=c.code;$('cfName').value=c.name;$('cfVal').value=c.value;$('cfMin').value=c.min||'';$('cfMax').value=c.max||'';$('cfExp').value=c.exp||'';$('cfFirst').value=c.total||'';$('cfPer').value=c.perClient||'';$('cfWeb').checked=c.channel!=='ALL';
+    m.querySelector(`[data-ct="${c.type}"]`).click();scrollTo(0,0);$('cfCode').focus()});
+  m.querySelectorAll('[data-tg]').forEach(b=>b.onclick=async()=>{const c=CPN.find(x=>x.code===b.dataset.tg);b.disabled=true;
+    try{await call('adminToggleCoupon',{code:c.code,active:!c.active});c.active=!c.active;toast(`${c.code} ${c.active?'사용 시작':'사용 중지'}`);renderCpn()}catch(e){toast(e.message);b.disabled=false}});
+  $('cpMaster').onclick=async e=>{const on=!CPON,b=e.target;
+    if(!confirm(on?'할인쿠폰 기능을 켭니다. 주문 페이지에 할인 코드 칸이 바로 보입니다. 켤까요?':'할인쿠폰 기능을 끕니다. 주문 페이지에서 할인 코드 칸이 사라집니다. 끌까요?'))return;
+    b.disabled=true;try{await call('adminSetCouponFeature',{on});CPON=on;toast(on?'할인쿠폰 기능 ON — 주문 페이지에 바로 반영됩니다':'할인쿠폰 기능 OFF — 숨김 처리했습니다');renderCpn()}catch(x){toast(x.message);b.disabled=false}};
+  $('cfGo').onclick=async e=>{const b=e.target;b.disabled=true;
+    try{const r=await call('adminSaveCoupon',{code:$('cfCode').value,name:$('cfName').value,type:ty,value:$('cfVal').value,min:$('cfMin').value,max:$('cfMax').value,exp:$('cfExp').value,total:$('cfFirst').value,perClient:$('cfPer').value,channel:$('cfWeb').checked?'WEB_ONLY':'ALL'});
+      toast(`${r.code} ${r.created?'만들었습니다':'고쳤습니다'}`);renderCpn(true)}catch(x){toast(x.message);b.disabled=false}};
 }
 
 /* ---------- 이벤트 ---------- */
