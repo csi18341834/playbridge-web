@@ -149,6 +149,7 @@ textarea{width:100%;min-height:84px;border:2px solid var(--line);border-radius:1
 #adminStats{display:grid;grid-template-columns:1fr 1fr;gap:8px;padding:10px 16px 0}#adminStats[hidden]{display:none}
 .ast{background:var(--card);border:2px solid var(--line);border-radius:14px;padding:10px 12px;min-width:0}.ast span{display:block;font-size:13px;font-weight:800;color:var(--sub)}
 .ast b{display:block;font-size:22px;line-height:1.3}.ast small{display:block;font-size:13px;color:var(--sub);overflow-wrap:anywhere}.ast.hot{border-color:var(--pk)}.ast.hot b{color:var(--pk)}
+.seg3{grid-template-columns:repeat(3,1fr)}.seg3 button{font-size:13px;padding:0 2px}
 </style>
 </head>
 <body>
@@ -329,9 +330,18 @@ function shipMsg(o){
 
 /* ---------- 1688 발주·출고 품목합계 ---------- */
 function renderAgg(){
-  const buy=S.orders.filter(o=>o.status===STAGES[1]),pick=S.orders.filter(o=>o.status===STAGES[4]);
-  let h=`<div class="seg"><button type="button" data-agg="buy" class="${AGG==='buy'?'on':''}">1688 발주용<br><small>입금확인(발주전) ${buy.length}건</small></button><button type="button" data-agg="pick" class="${AGG==='pick'?'on':''}">국내 포장용<br><small>한국도착(통관) ${pick.length}건</small></button></div>`;
-  if(AGG==='buy'){
+  const buy=S.orders.filter(o=>o.status===STAGES[1]),pick=S.orders.filter(o=>o.status===STAGES[4]),live=S.orders.filter(o=>o.status!==CANCEL&&o.status!==STAGES[5]);
+  let h=`<div class="seg seg3"><button type="button" data-agg="buy" class="${AGG==='buy'?'on':''}">1688 발주용<br><small>입금확인(발주전) ${buy.length}건</small></button><button type="button" data-agg="pick" class="${AGG==='pick'?'on':''}">국내 포장용<br><small>한국도착(통관) ${pick.length}건</small></button><button type="button" data-agg="all" class="${AGG==='all'?'on':''}">전체 SKU 합계<br><small>진행 중 ${live.length}건</small></button></div>`;
+  if(AGG==='all'){   /* 진행 중(취소·국내발송완료 뺀) 모든 주문의 상품코드별 팩 합계 — 사입 참고용 */
+    const m={};live.forEach(o=>o.items.forEach(t=>{const k=t.c||nm(t.n).main;if(!m[k])m[k]={c:t.c,name:nm(t.n).main,pack:packOf(t.unit),q:0,st:{}};m[k].q+=Number(t.q)||0;m[k].st[o.status]=(m[k].st[o.status]||0)+(Number(t.q)||0)}));
+    const L=Object.values(m).sort((a,b)=>b.q-a.q||String(a.c).localeCompare(String(b.c))),tq=L.reduce((a,b)=>a+b.q,0),tp=L.reduce((a,b)=>a+b.q*b.pack,0);
+    h+=L.length?`<div class="tot"><span>SKU ${L.length}종 · 주문 ${live.length}건</span><span>${tq}팩 · ${tp.toLocaleString()}개</span></div>
+      ${L.map(a=>`<div class="agg"><div class="t"><span>${esc(a.name)}</span><b>${a.q}팩</b></div><div class="m">${esc(a.c)} · ${a.pack}개입 → <b>${(a.q*a.pack).toLocaleString()}개</b> · ${Object.keys(a.st).map(k=>esc(k)+' '+a.st[k]).join(', ')}</div></div>`).join('')}
+      <button class="btn w ghost" type="button" id="allCp">SKU 합계 복사 (사입 참고용)</button>
+      <p class="ps" style="margin-top:8px">취소·국내발송완료 주문은 빼고, 옵션(색상·사이즈)은 상품코드 하나로 합쳐 셉니다.</p>`:`<div class="empty">진행 중인 주문이 없습니다</div>`;
+    $('main').innerHTML=h;
+    if($('allCp'))$('allCp').addEventListener('click',()=>copy([`[SKU별 주문 합계] ${new Date().toLocaleDateString('ko-KR')} · 진행 중 ${live.length}건`,...L.map(a=>`${a.c} ${a.name} : ${a.q}팩 (${(a.q*a.pack).toLocaleString()}개)`),`합계 ${tq}팩 / ${tp.toLocaleString()}개`].join('\n'),'SKU 합계를 복사했습니다'));
+  }else if(AGG==='buy'){
     const m={};buy.forEach(o=>o.items.forEach(t=>{const x=nm(t.n),k=t.c+'|'+x.op;if(!m[k])m[k]={c:t.c,name:x.main,op:x.op,pa:x.pa,pack:packOf(t.unit),q:0,orders:new Set()};m[k].q+=t.q;m[k].orders.add(o.shop)}));
     const L=Object.values(m).sort((a,b)=>a.c.localeCompare(b.c)||a.op.localeCompare(b.op));
     const tq=L.reduce((a,b)=>a+b.q,0),tp=L.reduce((a,b)=>a+b.q*b.pack,0);
