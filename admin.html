@@ -150,6 +150,16 @@ textarea{width:100%;min-height:84px;border:2px solid var(--line);border-radius:1
 .ast{background:var(--card);border:2px solid var(--line);border-radius:14px;padding:10px 12px;min-width:0}.ast span{display:block;font-size:13px;font-weight:800;color:var(--sub)}
 .ast b{display:block;font-size:22px;line-height:1.3}.ast small{display:block;font-size:13px;color:var(--sub);overflow-wrap:anywhere}.ast.hot{border-color:var(--pk)}.ast.hot b{color:var(--pk)}
 .seg3{grid-template-columns:repeat(3,1fr)}.seg3 button{font-size:13px;padding:0 2px}
+.kmopen{min-height:44px;margin:4px 0 6px;font-size:16px}
+.km h4{margin:16px 0 6px;font-size:16px}.km label.l{display:block;font-weight:800;font-size:14px;margin:8px 0 4px}
+.km input[type=text],.km input[type=tel],.km input[type=number],.km select{width:100%;min-height:46px;border:2px solid var(--line);border-radius:12px;padding:0 12px;background:#fff;font-size:16px}
+.km .cand{display:flex;gap:8px;align-items:flex-start;border:2px solid var(--line);border-radius:12px;padding:10px;margin:6px 0;font-size:14px;line-height:1.45}.km .cand.on{border-color:var(--pk);background:#fff0f5}
+.km .cand b{font-size:15px}.km .cand .ps{display:block}
+.km .it{display:grid;grid-template-columns:1fr 74px 40px;gap:6px;align-items:center;margin:6px 0}.km .it .op{grid-column:1/-1;display:flex;gap:6px}.km .it .op select{flex:1}
+.km .it button{min-height:46px;border:0;border-radius:10px;background:#eee;font-weight:900}
+.km .kmtot{display:flex;justify-content:space-between;font-weight:900;font-size:17px;margin:10px 0}.km .dup{border:2px solid #c00;border-radius:12px;padding:10px;margin:10px 0;background:#fff3f3;font-size:14px;line-height:1.5}
+.km .dup.warn{border-color:#e08a00;background:#fff8ec}.km .dup b{display:block;font-size:15px;margin-bottom:4px}.km .prev{max-width:100%;max-height:220px;border-radius:10px;margin-top:6px;display:block}
+.km textarea.rep{min-height:260px;font-size:14px;line-height:1.5}
 </style>
 </head>
 <body>
@@ -173,6 +183,7 @@ textarea{width:100%;min-height:84px;border:2px solid var(--line);border-radius:1
       <button type="button" data-tab="sta">📊<br>간단 통계</button>
     </div>
     <div class="bar" id="ordBar">
+      <button class="btn w pk kmopen" type="button" id="kmOpen">＋ 카톡 주문 등록</button>
       <div class="chips" id="chips"></div>
       <div class="sbox"><input id="q" type="search" placeholder="거래처·주문자·뒷자리·발주번호" aria-label="주문 검색"></div>
     </div>
@@ -421,11 +432,109 @@ function render(){
   if(TAB==='ord')renderOrders();else if(TAB==='agg')renderAgg();else if(TAB==='sta')renderSta();else renderStk();
 }
 
+/* ---------- 카톡 주문 등록 ---------- */
+let KM=null;   // {P:상품목록, CFG, img, rows, match}
+async function kmProducts(){if(KM&&KM.P)return;const r=await fetch(API_URL+'?action=bootstrap',{redirect:'follow'}).then(r=>r.json());if(!r||!r.ok)throw new Error('상품 목록을 불러오지 못했습니다');KM.P=r.data.products.filter(p=>p.tag!=='out');KM.CFG=r.data.cfg}
+const kmShort=n=>String(n).split(' (')[0];
+const KM_STOP=['키링','봉제','혼합','인형','세트','피규어','파우치','종','cm','팩','개','산리오','치이카와','짱구'];
+/* 카톡 글에서 상품·수량 짐작 (관리자가 고쳐서 확정) */
+function kmGuess(text){
+  const out={},lines=String(text||'').split(/\n|,|\//).map(x=>x.trim()).filter(Boolean),nz=t=>t.replace(/\s+/g,'').toLowerCase();
+  lines.forEach(line=>{const L=nz(line);let best=null,bs=0;
+    KM.P.forEach(p=>{const words=kmShort(p.n).replace(/[\[\]()·,]/g,' ').split(/\s+/).filter(w=>w.length>=2&&!KM_STOP.some(s=>w===s||/^\d+(종|cm|개)$/.test(w)));
+      const sc=words.filter(w=>L.indexOf(nz(w))>=0).length;if(sc>bs){bs=sc;best=p}});
+    if(!best)return;const m=line.match(/(\d+)\s*(팩|세트|p|P|박스)/)||line.match(/(\d+)\s*개/);let q=m?parseInt(m[1],10):best.moq;
+    if(m&&/개/.test(m[0])&&best.pack>1)q=Math.max(best.moq,Math.ceil(q/best.pack));
+    const k=best.c;out[k]=(out[k]||0)+q});
+  return Object.keys(out).map(c=>({c,q:out[c],o1:'',o2:''}));
+}
+function kmPane(){
+  KM={P:KM&&KM.P,CFG:KM&&KM.CFG,img:'',rows:[],match:null};openPo='';
+  $('pT').textContent='카톡 주문 등록';
+  $('pB').innerHTML=`<div class="km">
+    <label class="l" for="kmNick">카톡 닉네임</label><input type="text" id="kmNick" placeholder="예: 행복뽑기 김사장">
+    <label class="l" for="kmText">카톡 주문 내용 (붙여넣기)</label><textarea id="kmText" placeholder="사장님이 보낸 카톡 글을 그대로 붙여넣으세요"></textarea>
+    <label class="l" for="kmImg">카톡 캡처·상품 사진 (선택, 증빙으로 저장)</label><input type="file" id="kmImg" accept="image/*"><img class="prev" id="kmPrev" hidden alt="">
+    <button class="btn w" type="button" id="kmFind" style="margin-top:10px">거래처·상품 찾기</button>
+    <div id="kmStep" hidden>
+      <h4>① 거래처 확인</h4><div id="kmCands"></div>
+      <label class="l" for="kmShop">상호명 *</label><input type="text" id="kmShop">
+      <label class="l" for="kmWho">주문자 이름</label><input type="text" id="kmWho">
+      <label class="l" for="kmTel">연락처 *</label><input type="tel" id="kmTel">
+      <label class="l" for="kmAddr">배송 주소 *</label><input type="text" id="kmAddr">
+      <label style="display:flex;gap:8px;align-items:center;margin-top:8px;font-weight:700"><input type="checkbox" id="kmUpd"> 이 연락처·주소를 거래처 기본값으로 저장</label>
+      <h4>② 상품·수량 (팩)</h4><div id="kmItems"></div><button class="btn w ghost" type="button" id="kmAdd">＋ 상품 추가</button>
+      <div class="kmtot" id="kmTot"></div>
+      <label class="l" for="kmMemo">메모 (선택)</label><input type="text" id="kmMemo" placeholder="예: 입금은 내일 예정">
+      <div id="kmDup"></div><div class="err" id="kmErr" style="color:#c00;font-weight:700;margin:8px 0"></div>
+      <button class="btn w pk" type="button" id="kmGo">주문 등록</button>
+    </div><div id="kmDone"></div></div>`;
+  openPane();
+  $('kmImg').addEventListener('change',e=>{const f=e.target.files[0];if(!f)return;const rd=new FileReader();rd.onload=()=>{const im=new Image();im.onload=()=>{const k=Math.min(1,1600/Math.max(im.width,im.height)),c=document.createElement('canvas');c.width=Math.round(im.width*k);c.height=Math.round(im.height*k);c.getContext('2d').drawImage(im,0,0,c.width,c.height);KM.img=c.toDataURL('image/jpeg',0.85);$('kmPrev').src=KM.img;$('kmPrev').hidden=false};im.src=rd.result};rd.readAsDataURL(f)});
+  $('kmFind').addEventListener('click',kmFind);
+}
+async function kmFind(){
+  const b=$('kmFind');b.disabled=true;b.textContent='찾는 중…';
+  try{
+    await kmProducts();
+    const r=await call('adminLookupCustomerMatch',{kakaoNick:$('kmNick').value.trim(),rawText:$('kmText').value});
+    const L=[...r.exact.map(c=>Object.assign({ex:1},c)),...r.candidates];KM.cands=L;
+    $('kmCands').innerHTML=(L.length?L.map((c,i)=>`<label class="cand${i===0&&c.ex?' on':''}"><input type="radio" name="kmC" value="${i}"${i===0&&c.ex?' checked':''}><span><b>${esc(c.shop)}</b> ${esc(c.who||'')}${c.ex?' <span class="badge b5">일치</span>':''}<span class="ps">${esc(c.tel)} · ${esc(c.addr)}</span><span class="ps">${esc(c.why||'')}${c.kakaoNick?' · 닉네임 '+esc(c.kakaoNick):''}${c.lastOrder?' · 최근 주문 '+esc(c.lastOrder):''}</span></span></label>`).join(''):'<div class="ps">등록된 거래처에서 찾지 못했습니다 → 새 거래처로 등록됩니다</div>')+
+      `<label class="cand${L.length&&!L[0].ex||!L.length?' on':''}"><input type="radio" name="kmC" value="new"${L.length&&!L[0].ex||!L.length?' checked':''}><span><b>새 거래처로 등록</b><span class="ps">아래 칸에 직접 입력</span></span></label>`;
+    $('kmCands').querySelectorAll('input[name=kmC]').forEach(x=>x.addEventListener('change',kmPick));kmPick();
+    if(!$('kmTel').value){const m=$('kmText').value.match(/01[016789][-\s.]?\d{3,4}[-\s.]?\d{4}/);if(m)$('kmTel').value=m[0]}
+    KM.rows=kmGuess($('kmText').value);if(!KM.rows.length)KM.rows=[{c:'',q:3,o1:'',o2:''}];kmItems();
+    $('kmStep').hidden=false;$('kmAdd').onclick=()=>{KM.rows.push({c:'',q:3,o1:'',o2:''});kmItems()};$('kmGo').onclick=()=>kmSend(false);
+  }catch(e){toast(e.message)}finally{b.disabled=false;b.textContent='거래처·상품 다시 찾기'}
+}
+function kmPick(){const v=($('kmCands').querySelector('input[name=kmC]:checked')||{}).value;$('kmCands').querySelectorAll('.cand').forEach(l=>l.classList.toggle('on',!!l.querySelector('input:checked')));
+  const c=v!=null&&v!=='new'?KM.cands[+v]:null;KM.match=c;
+  if(c){$('kmShop').value=c.shop;$('kmWho').value=c.who;$('kmTel').value=c.tel;$('kmAddr').value=c.addr}
+  else if(v==='new'){['kmShop','kmWho','kmAddr'].forEach(i=>$(i).value='')}}
+function kmItems(){
+  const opt=(arr,cur,ph)=>`<select data-o><option value="">${ph}</option>${arr.map(o=>`<option${o===cur?' selected':''}>${esc(o)}</option>`).join('')}</select>`;
+  $('kmItems').innerHTML=KM.rows.map((r,i)=>{const p=KM.P.find(x=>x.c===r.c);return `<div class="it" data-i="${i}">
+    <select data-c><option value="">상품 선택</option>${KM.P.map(x=>`<option value="${esc(x.c)}"${x.c===r.c?' selected':''}>${esc(kmShort(x.n))} · ${x.pack}개입</option>`).join('')}</select>
+    <input type="number" data-q min="1" max="999" value="${r.q}" aria-label="팩 수"><button type="button" data-x aria-label="빼기">×</button>
+    ${p&&(p.opts.length||p.opts2.length)?`<div class="op">${p.opts2.length?opt(p.opts2,r.o2,p.optLabel2+' 고르기').replace('data-o','data-o2'):''}${p.opts.length?opt(p.opts,r.o1,p.optLabel+' 고르기').replace('data-o','data-o1'):''}</div>`:''}</div>`}).join('');
+  $('kmItems').querySelectorAll('.it').forEach(el=>{const r=KM.rows[+el.dataset.i];
+    el.querySelector('[data-c]').onchange=e=>{r.c=e.target.value;r.o1=r.o2='';const p=KM.P.find(x=>x.c===r.c);if(p&&r.q<p.moq)r.q=p.moq;kmItems()};
+    el.querySelector('[data-q]').oninput=e=>{r.q=parseInt(e.target.value,10)||0;kmTotal()};
+    el.querySelector('[data-x]').onclick=()=>{KM.rows.splice(+el.dataset.i,1);kmItems()};
+    const a=el.querySelector('[data-o1]'),b=el.querySelector('[data-o2]');if(a)a.onchange=e=>{r.o1=e.target.value};if(b)b.onchange=e=>{r.o2=e.target.value}});
+  kmTotal();
+}
+function kmTotal(){const sub=KM.rows.reduce((a,r)=>{const p=KM.P.find(x=>x.c===r.c);return a+(p?p.price*r.q:0)},0),C=KM.CFG||{};
+  const ship=sub&&sub<(C.freeShip||0)?(C.shipFee||0):0;$('kmTot').innerHTML=`<span>입금액 (VAT·배송비 포함)</span><span>${won(sub+ship)}</span>`;
+  $('kmTot').title=sub<(C.minOrder||0)?'최소 주문금액 미달':''}
+async function kmSend(force){
+  const items={};let bad='';
+  KM.rows.forEach(r=>{const p=KM.P.find(x=>x.c===r.c);if(!p||!(r.q>0))return;if(p.opts.length&&!r.o1||p.opts2.length&&!r.o2)bad=kmShort(p.n)+' 옵션을 골라 주세요.';const k=p.c+(p.opts.length||p.opts2.length?'|'+(r.o1||'')+'|'+(r.o2||''):'');items[k]=(items[k]||0)+r.q});
+  if(bad){$('kmErr').textContent=bad;return}if(!Object.keys(items).length){$('kmErr').textContent='상품을 골라 주세요.';return}
+  if(force&&KM.dupLevel==='BLOCK'&&!confirm('같은 주문이 이미 있습니다. 정말 한 번 더 등록할까요? (재고도 다시 차감됩니다)'))return;
+  const b=$('kmGo');b.disabled=true;b.textContent='등록 중…';$('kmErr').textContent='';
+  try{
+    const r=await call('adminCreateKakaoOrder',{kakaoNick:$('kmNick').value.trim(),rawText:$('kmText').value,imageBase64:KM.img,shop:$('kmShop').value.trim(),who:$('kmWho').value.trim(),
+      tel:$('kmTel').value.trim(),addr:$('kmAddr').value.trim(),items,memo:$('kmMemo').value.trim(),forceDuplicate:!!force,updateDefaultAddr:$('kmUpd').checked,clientRow:KM.match?KM.match.row:''});
+    if(r.duplicateWarning){KM.dupLevel=r.level;
+      $('kmDup').innerHTML=`<div class="dup${r.level==='WARN'?' warn':''}"><b>${r.level==='BLOCK'?'⛔ 같은 주문이 이미 있습니다':'⚠️ 비슷한 주문이 있습니다'} — 아직 저장하지 않았어요</b>${r.matches.map(m=>`${esc(m.po)} · ${esc(m.date)} · ${esc(m.shop)} · ${won(m.total)} · ${esc(m.status)}<br><span class="ps">${esc(m.reason)} — ${esc(m.items)}</span>`).join('<br>')}
+        <button class="btn w ghost" type="button" id="kmForce" style="margin-top:8px">확인했어요, 그래도 등록</button></div>`;
+      $('kmForce').onclick=()=>kmSend(true);b.disabled=false;b.textContent='주문 등록';$('kmDup').scrollIntoView({block:'center'});return}
+    $('kmStep').hidden=true;$('kmFind').hidden=true;
+    $('kmDone').innerHTML=`<p class="ok" style="font-weight:900;font-size:17px">✅ ${esc(r.po)} 등록 완료${r.forced?' (중복 확인 후 등록)':''}</p>${r.proof?`<p class="ps"><a href="${esc(r.proof)}" target="_blank" rel="noopener">증빙 사진 보기</a></p>`:''}
+      <label class="l">사장님께 보낼 입금 안내</label><textarea class="rep" id="kmRep" readonly>${esc(r.replyMessage)}</textarea>
+      <button class="btn w pk" type="button" id="kmCp">안내문 복사 (카톡에 붙여넣기)</button>`;
+    $('kmCp').onclick=()=>copy(r.replyMessage,'안내문을 복사했습니다. 카톡에 붙여넣어 주세요');
+    load();
+  }catch(e){$('kmErr').textContent=e.message;b.disabled=false;b.textContent='주문 등록'}
+}
+
 /* ---------- 이벤트 ---------- */
 $('lGo').addEventListener('click',login);$('pin').addEventListener('keydown',e=>{if(e.key==='Enter')login()});
 $('out').addEventListener('click',()=>logout(''));
 $('reload').addEventListener('click',()=>{STK=null;load()});
-$('pX').addEventListener('click',closePane);$('pane').addEventListener('click',e=>{if(e.target===$('pane'))closePane()});
+$('pX').addEventListener('click',closePane);
+$('kmOpen').addEventListener('click',kmPane);$('pane').addEventListener('click',e=>{if(e.target===$('pane'))closePane()});
 document.addEventListener('keydown',e=>{if(e.key==='Escape')closePane()});
 $('q').addEventListener('input',e=>{Q=e.target.value.trim();renderOrders()});
 document.addEventListener('click',e=>{
