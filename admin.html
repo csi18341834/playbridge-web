@@ -176,6 +176,10 @@ textarea{width:100%;min-height:84px;border:2px solid var(--line);border-radius:1
 .cpc .tg{flex:none;min-height:40px;border:0;border-radius:99px;padding:0 14px;font-weight:900;background:#eee}.cpc .tg.on{background:#13723a;color:#fff}
 .lnk{border:0;background:none;color:#1f4fbf;font-weight:800;text-decoration:underline;padding:4px 0;font-size:14px;min-height:32px}
 .sec.master{border:2px solid var(--line)}.sec.master h3{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.tb2{display:grid;grid-template-columns:1fr 1fr;gap:6px}.tb2 .kmopen{font-size:15px;padding:0 6px}
+.dp .dpt{display:grid;gap:6px}.dp .dpr{display:grid;grid-template-columns:92px 1fr 88px 36px;gap:4px}.dp .dpr input{min-height:44px;border:2px solid var(--line);border-radius:10px;padding:0 6px;font-size:15px;min-width:0;background:#fff}.dp .dpr button{border:0;border-radius:10px;background:#eee;font-weight:900}
+.dp .dpm{border:2px solid var(--line);border-radius:12px;padding:10px;margin:8px 0;background:#fff}.dp .dpm.EXACT{border-color:#1a9b4b}.dp .dpm.AMOUNT_ONLY,.dp .dpm.MULTI{border-color:#e0a000}.dp .dpm.UNMATCHED{opacity:.7;border-color:#e57373}
+.dp .dh{display:flex;justify-content:space-between;gap:6px;align-items:center;flex-wrap:wrap}.dp .dbg{font-size:13px;font-weight:900;white-space:nowrap}.dp select{width:100%;min-height:44px;margin-top:6px;border:2px solid var(--line);border-radius:10px;font-size:14px;background:#fff}
 </style>
 </head>
 <body>
@@ -200,7 +204,7 @@ textarea{width:100%;min-height:84px;border:2px solid var(--line);border-radius:1
       <button type="button" data-tab="cpn">🎟<br>할인 코드</button>
     </div>
     <div class="bar" id="ordBar">
-      <button class="btn w pk kmopen" type="button" id="kmOpen">＋ 카톡 주문 등록</button>
+      <div class="tb2"><button class="btn w pk kmopen" type="button" id="kmOpen">＋ 카톡 주문 등록</button><button class="btn w kmopen" type="button" id="dpOpen">📸 입금내역 캡처 매칭</button></div>
       <div class="chips" id="chips"></div>
       <div class="sbox"><input id="q" type="search" placeholder="거래처·주문자·뒷자리·발주번호" aria-label="주문 검색"></div>
     </div>
@@ -335,7 +339,7 @@ function detail(po,focusInv){
     <label class="chk"><input type="checkbox" id="part" ${o.partial?'checked':''}> 부분 발송 (미발송 잔여 품목 있음)</label>
   </div>
   <div class="sec"><h3>품목 ${o.items.length}종 · ${o.packs}팩</h3><ul class="items">${o.items.map(t=>{const x=nm(t.n);return `<li><span>${esc(x.main)}${x.op?`<span class="op">${esc(x.op)}</span>`:''}${x.pa?`<span class="ps">${esc(x.pa)} · ${esc(t.unit)}</span>`:''}</span><b>${t.q}팩<br><small style="font-weight:700">${won(t.sum)}</small></b></li>`}).join('')}</ul>
-    <div class="kv"><span>상품</span><span>${won(o.sub)}</span></div>${o.pgType==='PG_CARD'?`<div class="kv"><span>결제수단</span><span>카드PG · ${esc(o.pgStatus||'')}${o.receipt?` · <a href="${esc(o.receipt)}" target="_blank" rel="noopener">매출전표</a>`:''}</span></div>`:''}${o.disc?`<div class="kv" style="color:#c00"><span>할인 ${esc(o.coupon)}</span><span>-${won(o.disc)}</span></div>`:''}<div class="kv"><span>배송비</span><span>${o.ship?won(o.ship):'무료'}</span></div><div class="kv t"><span>합계</span><span>${won(o.total)}</span></div></div>
+    <div class="kv"><span>상품</span><span>${won(o.sub)}</span></div>${o.depName||o.depAt?`<div class="kv"><span>입금확인</span><span>${esc(o.depName||'')}${o.depAt?' · '+esc(o.depAt):''}</span></div>`:''}${o.pgType==='PG_CARD'?`<div class="kv"><span>결제수단</span><span>카드PG · ${esc(o.pgStatus||'')}${o.receipt?` · <a href="${esc(o.receipt)}" target="_blank" rel="noopener">매출전표</a>`:''}</span></div>`:''}${o.disc?`<div class="kv" style="color:#c00"><span>할인 ${esc(o.coupon)}</span><span>-${won(o.disc)}</span></div>`:''}<div class="kv"><span>배송비</span><span>${o.ship?won(o.ship):'무료'}</span></div><div class="kv t"><span>합계</span><span>${won(o.total)}</span></div></div>
   ${(o.history||[]).length?`<div class="sec"><h3>변경 이력</h3><ul class="hist">${o.history.slice().reverse().map(h=>`<li>${esc(h)}</li>`).join('')}</ul></div>`:''}
   <div class="sec"><h3>배송지 · 연락처</h3><div class="addr">${esc(o.addr||'-')}</div><div class="addr" style="margin-top:4px;font-weight:700">${esc(o.tel)}</div>
     <div class="contact"><a href="tel:${esc(o.tel.replace(/[^0-9+]/g,''))}">📞 전화 걸기</a><button type="button" id="addrCp">주소 복사</button></div></div>`;
@@ -617,6 +621,97 @@ async function kmSend(force){
   }catch(e){$('kmErr').textContent=e.message;b.disabled=false;b.textContent='주문 등록'}
 }
 
+/* ---------- 📸 입금내역 캡처 매칭 ---------- */
+let DP=null;   // {rows:[{date,name,amount}], res}
+const DP_SKIP=/^(입금|출금|이체|타행|당행|모바일|스마트|인터넷|입금내역|거래내역|잔액|원|월|일|신한|국민|우리|하나|농협|기업|카카오뱅크|카카오|토스|토스뱅크|케이뱅크|새마을|우체국|SC제일|씨티|부산|대구|경남|광주|전북|제주|수협|신협|web발신|웹발신|알림|안내|체크|카드|ATM|CD|오픈뱅킹|펌뱅킹|급여|자동|입금자|받는분|보낸분|메모|내용|구분|거래|금액|일시|날짜|전체|조회|기간|오늘|어제|더보기|확인|통장|계좌|예금|주식회사)$/i;
+/* 입금 알림 문자·은행 앱 캡처 글자 → [{date,name,amount}] (출금·잔액은 뺌, 이름·금액이 다른 줄이면 가까운 줄끼리 묶음) */
+function dpParse(text){
+  const L=String(text||'').replace(/\r/g,'').split('\n').map(x=>x.replace(/잔액\s*[:：]?\s*[\d,]+\s*원?/g,' ').trim()).filter(Boolean),out=[];
+  const amtOf=l=>{if(/출금|지출|결제|-\s*[\d,]{4,}/.test(l)&&!/입금|\+/.test(l))return 0;const m=l.match(/\+?\s*(\d{1,3}(?:,\d{3})+|\d{4,9})\s*원?/g);if(!m)return 0;
+    const v=m.map(x=>Number(x.replace(/[^\d]/g,''))).filter(n=>n>=1000&&n<100000000&&!/^(19|20)\d{6}$/.test(String(n)));return v.length?v[0]:0};
+  const dateOf=l=>{const m=l.match(/(\d{1,2})[./-](\d{1,2})(?:[./-]\d{2,4})?\s*(\d{1,2}:\d{2})?/)||l.match(/(\d{1,2})월\s*(\d{1,2})일\s*(\d{1,2}:\d{2})?/);return m?(m[1]+'/'+m[2]+(m[3]?' '+m[3]:'')):''};
+  const nameOf=l=>{const w=l.replace(/[\d,:./+\-()\[\]*]+/g,' ').replace(/원\b/g,' ').split(/\s+/).map(x=>x.trim()).filter(x=>x.length>=2&&x.length<=14&&/[가-힣A-Za-z]/.test(x)&&!DP_SKIP.test(x));return w.length?w[w.length-1]:''};
+  for(let i=0;i<L.length;i++){
+    const l=L[i],a=amtOf(l);if(!a)continue;
+    let n=nameOf(l),d=dateOf(l);
+    for(let k=1;k<=2&&(!n||!d);k++){if(!n&&L[i-k]&&!amtOf(L[i-k]))n=nameOf(L[i-k]);if(!d&&L[i-k])d=dateOf(L[i-k]);if(!n&&L[i+k]&&!amtOf(L[i+k]))n=nameOf(L[i+k]);if(!d&&L[i+k])d=dateOf(L[i+k])}
+    out.push({date:d,name:n,amount:a});
+  }
+  return out;
+}
+function dpPane(){
+  DP={rows:[],res:null};openPo='';
+  $('pT').textContent='📸 입금내역 캡처 매칭';
+  $('pB').innerHTML=`<div class="km dp">
+    <p class="ps">은행 앱 입금내역 캡처를 올리거나, 입금 알림 문자를 붙여넣으세요. 읽은 결과는 아래 표에서 고칠 수 있어요.</p>
+    <div class="drop" id="dpDrop" tabindex="0"><b>📎 캡처를 끌어다 놓거나 Ctrl+V로 붙여넣기</b><span class="ps">또는 파일 고르기 (여러 장 가능)</span><input type="file" id="dpImg" accept="image/*" multiple></div>
+    <div class="ps" id="dpOcr"></div>
+    <label class="l" for="dpText">입금 알림 문자 / 읽은 글자</label><textarea id="dpText" placeholder="예) [신한] 11/23 14:22 입금 163,060원 원종학&#10;또는 캡처를 올리면 읽은 글자가 여기에 들어옵니다"></textarea>
+    <button class="btn w ghost" type="button" id="dpParse" style="margin-top:8px">글자에서 입금 건 뽑기</button>
+    <h4>① 입금 건 (틀린 글자는 바로 고치세요)</h4>
+    <div id="dpRows"></div><button class="btn w ghost" type="button" id="dpAdd">＋ 입금 건 직접 추가</button>
+    <button class="btn w pk" type="button" id="dpMatch" style="margin-top:10px">입금대기 주문과 매칭</button>
+    <div id="dpRes"></div></div>`;
+  openPane();
+  $('dpImg').addEventListener('change',e=>dpOcr([...e.target.files]));
+  const d=$('dpDrop');['dragenter','dragover'].forEach(t=>d.addEventListener(t,e=>{e.preventDefault();d.classList.add('on')}));['dragleave','drop'].forEach(t=>d.addEventListener(t,e=>{e.preventDefault();d.classList.remove('on')}));
+  d.addEventListener('drop',e=>dpOcr([...(e.dataTransfer.files||[])].filter(f=>/^image\//.test(f.type))));
+  $('dpParse').onclick=()=>{const r=dpParse($('dpText').value);if(!r.length){toast('입금 건을 찾지 못했어요. 표에 직접 추가해 주세요');return}DP.rows=DP.rows.concat(r);dpRowsRender();toast(r.length+'건을 뽑았어요. 표를 확인해 주세요')};
+  $('dpAdd').onclick=()=>{DP.rows.push({date:'',name:'',amount:''});dpRowsRender()};
+  $('dpMatch').onclick=dpMatch;dpRowsRender();
+}
+document.addEventListener('paste',e=>{if(!DP||$('pane').hidden||!$('dpDrop'))return;const it=[...((e.clipboardData||{}).items||[])].filter(x=>/^image\//.test(x.type));if(!it.length)return;e.preventDefault();dpOcr(it.map(x=>x.getAsFile()))});
+let TESS=null;
+function dpTess(){if(window.Tesseract)return Promise.resolve();if(TESS)return TESS;TESS=new Promise((ok,no)=>{const s=document.createElement('script');s.src='https://cdn.jsdelivr.net/npm/tesseract.js@5.1.1/dist/tesseract.min.js';s.onload=ok;s.onerror=()=>{TESS=null;no(new Error('글자 읽기 도구를 불러오지 못했어요. 입금 문자를 붙여넣거나 표에 직접 적어 주세요'))};document.head.appendChild(s)});return TESS}
+async function dpOcr(files){
+  files=(files||[]).filter(Boolean);if(!files.length)return;
+  const box=$('dpOcr');
+  try{box.textContent='글자 읽기 도구 준비 중… (처음 한 번은 10~30초)';await dpTess();
+    for(let i=0;i<files.length;i++){box.textContent=`캡처 ${i+1}/${files.length} 글자 읽는 중…`;
+      const r=await Tesseract.recognize(files[i],'kor+eng',{logger:m=>{if(m.status==='recognizing text')box.textContent=`캡처 ${i+1}/${files.length} 읽는 중 ${Math.round(m.progress*100)}%`}});
+      const t=(r&&r.data&&r.data.text)||'';$('dpText').value=($('dpText').value?$('dpText').value+'\n':'')+t;
+      const got=dpParse(t);DP.rows=DP.rows.concat(got);dpRowsRender();box.textContent=`캡처 ${i+1}장 읽기 완료 · 입금 ${got.length}건 찾음 (틀린 곳은 표에서 고쳐 주세요)`}
+  }catch(e){box.textContent='❌ '+e.message}
+}
+function dpRowsRender(){
+  $('dpRows').innerHTML=DP.rows.length?`<div class="dpt">${DP.rows.map((r,i)=>`<div class="dpr" data-i="${i}"><input data-k="date" value="${esc(r.date)}" placeholder="일시" aria-label="입금일시"><input data-k="name" value="${esc(r.name)}" placeholder="입금자명" aria-label="입금자명"><input data-k="amount" inputmode="numeric" value="${r.amount?Number(r.amount).toLocaleString('ko-KR'):''}" placeholder="입금액" aria-label="입금액"><button type="button" data-x aria-label="빼기">×</button></div>`).join('')}</div>`:'<div class="ps">아직 입금 건이 없어요</div>';
+  $('dpRows').querySelectorAll('.dpr').forEach(el=>{const r=DP.rows[+el.dataset.i];
+    el.querySelectorAll('input').forEach(inp=>inp.oninput=()=>{r[inp.dataset.k]=inp.dataset.k==='amount'?Number(inp.value.replace(/[^\d]/g,''))||'':inp.value.trim();DP.res=null;$('dpRes').innerHTML=''});
+    el.querySelector('[data-x]').onclick=()=>{DP.rows.splice(+el.dataset.i,1);dpRowsRender();DP.res=null;$('dpRes').innerHTML=''}});
+}
+const DP_BADGE={EXACT:'🟢 정확 일치',MULTI:'🟡 복수 후보 확인 필요',AMOUNT_ONLY:'🟡 금액 일치 / 이름 상이',UNMATCHED:'🔴 매칭 없음'};
+async function dpMatch(){
+  const items=DP.rows.filter(r=>r.amount>0);if(!items.length){toast('입금액이 있는 입금 건을 넣어 주세요');return}
+  const b=$('dpMatch');b.disabled=true;b.textContent='매칭 중…';
+  try{const r=await call('matchDeposits',{items});DP.res=r.results;DP.items=items;dpResRender(r.waiting)}catch(e){toast(e.message)}finally{b.disabled=false;b.textContent='입금대기 주문과 다시 매칭'}
+}
+function dpResRender(waiting){
+  const R=DP.res;
+  $('dpRes').innerHTML=`<h4>② 매칭 결과 <small class="ps">입금대기 주문 ${waiting}건과 비교</small></h4>${R.map((r,i)=>`<div class="dpm ${r.level}" data-i="${i}">
+    <div class="dh"><label class="kmchk" style="margin:0"><input type="checkbox" data-ck ${r.level==='EXACT'?'checked':''} ${r.level==='UNMATCHED'?'disabled':''}> <b>${esc(r.name||'(이름 없음)')}</b> ${won(r.amount)}</label><span class="dbg">${DP_BADGE[r.level]}</span></div>
+    <div class="ps">${esc(r.date||'')}${r.date?' · ':''}${esc(r.why)}</div>
+    ${r.orders.length?`<select data-po>${r.level==='EXACT'?'':'<option value="">주문 고르기</option>'}${r.orders.map(o=>`<option value="${esc(o.po)}"${o.po===r.pick?' selected':''}>${esc(o.shop)}(${esc(o.who)}) · ${won(o.total)} · ${esc(o.po)} · ${esc(o.date)}</option>`).join('')}</select>`:''}
+  </div>`).join('')}
+  <div class="err" id="dpErr" style="color:#c00;font-weight:700;margin:8px 0"></div>
+  <button class="btn w pk" type="button" id="dpGo">선택 건 일괄 입금확인 처리</button>`;
+  $('dpRes').querySelectorAll('.dpm').forEach(el=>{const r=R[+el.dataset.i],s=el.querySelector('[data-po]'),c=el.querySelector('[data-ck]');
+    if(s)s.onchange=()=>{r.pick=s.value;if(s.value&&!c.disabled)c.checked=true};});
+  $('dpGo').onclick=dpConfirm;
+}
+async function dpConfirm(){
+  const pick=[];let bad='';
+  $('dpRes').querySelectorAll('.dpm').forEach(el=>{const r=DP.res[+el.dataset.i];if(!el.querySelector('[data-ck]').checked)return;if(!r.pick){bad=`${r.name||'이름 없음'} ${won(r.amount)}: 주문을 골라 주세요`;return}pick.push({po:r.pick,name:r.name,date:r.date})});
+  if(bad){$('dpErr').textContent=bad;return}if(!pick.length){$('dpErr').textContent='체크된 입금 건이 없어요';return}
+  const dup=pick.map(p=>p.po).filter((p,i,a)=>a.indexOf(p)!==i);if(dup.length){$('dpErr').textContent='같은 주문이 두 번 선택됐어요: '+dup.join(', ');return}
+  if(!confirm(`${pick.length}건을 입금확인(발주전)으로 바꿀까요?\n\n`+pick.map(p=>`${p.po} ← ${p.name}`).join('\n')))return;
+  const b=$('dpGo');b.disabled=true;b.textContent='처리 중…';
+  try{const r=await call('confirmMatchedDeposits',{list:pick});
+    toast(`입금확인 ${r.done.length}건 완료${r.skipped.length?` · 건너뜀 ${r.skipped.length}건`:''}`);
+    $('dpRes').innerHTML=`<p class="ok" style="font-weight:900;font-size:17px">✅ 입금확인 ${r.done.length}건 완료</p>${r.done.map(p=>`<div class="ps">${esc(p)} → 입금확인(발주전)</div>`).join('')}${r.skipped.map(s=>`<div class="ps" style="color:#c00">${esc(s.po)} 건너뜀: ${esc(s.reason)}</div>`).join('')}`;
+    load();
+  }catch(e){$('dpErr').textContent=e.message;b.disabled=false;b.textContent='선택 건 일괄 입금확인 처리'}
+}
+
 /* ---------- 할인 코드(쿠폰) 관리 ---------- */
 let CPN=null,CPON=false;
 async function renderCpn(force){
@@ -663,7 +758,7 @@ $('lGo').addEventListener('click',login);$('pin').addEventListener('keydown',e=>
 $('out').addEventListener('click',()=>logout(''));
 $('reload').addEventListener('click',()=>{STK=null;load()});
 $('pX').addEventListener('click',closePane);
-$('kmOpen').addEventListener('click',kmPane);$('pane').addEventListener('click',e=>{if(e.target===$('pane'))closePane()});
+$('kmOpen').addEventListener('click',kmPane);$('dpOpen').addEventListener('click',dpPane);$('pane').addEventListener('click',e=>{if(e.target===$('pane'))closePane()});
 document.addEventListener('keydown',e=>{if(e.key==='Escape')closePane()});
 $('q').addEventListener('input',e=>{Q=e.target.value.trim();renderOrders()});
 document.addEventListener('click',e=>{
