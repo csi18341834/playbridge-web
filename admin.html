@@ -176,7 +176,7 @@ textarea{width:100%;min-height:84px;border:2px solid var(--line);border-radius:1
 .cpc .tg{flex:none;min-height:40px;border:0;border-radius:99px;padding:0 14px;font-weight:900;background:#eee}.cpc .tg.on{background:#13723a;color:#fff}
 .lnk{border:0;background:none;color:#1f4fbf;font-weight:800;text-decoration:underline;padding:4px 0;font-size:14px;min-height:32px}
 .sec.master{border:2px solid var(--line)}.sec.master h3{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
-.tb2{display:grid;grid-template-columns:1fr 1fr;gap:6px}.tb2 .kmopen{font-size:15px;padding:0 6px}
+.tb2{display:grid;grid-template-columns:1fr 1fr;gap:6px}.tb2 .xlopen{grid-column:1/-1}.tb2 .kmopen{font-size:15px;padding:0 6px}
 .dp .dpt{display:grid;gap:6px}.dp .dpr{display:grid;grid-template-columns:92px 1fr 88px 36px;gap:4px}.dp .dpr input{min-height:44px;border:2px solid var(--line);border-radius:10px;padding:0 6px;font-size:15px;min-width:0;background:#fff}.dp .dpr button{border:0;border-radius:10px;background:#eee;font-weight:900}
 .dp .dpm{border:2px solid var(--line);border-radius:12px;padding:10px;margin:8px 0;background:#fff}.dp .dpm.EXACT{border-color:#1a9b4b}.dp .dpm.AMOUNT_ONLY,.dp .dpm.MULTI{border-color:#e0a000}.dp .dpm.UNMATCHED{opacity:.7;border-color:#e57373}
 .dp .dh{display:flex;justify-content:space-between;gap:6px;align-items:center;flex-wrap:wrap}.dp .dbg{font-size:13px;font-weight:900;white-space:nowrap}.dp select{width:100%;min-height:44px;margin-top:6px;border:2px solid var(--line);border-radius:10px;font-size:14px;background:#fff}
@@ -204,7 +204,7 @@ textarea{width:100%;min-height:84px;border:2px solid var(--line);border-radius:1
       <button type="button" data-tab="cpn">🎟<br>할인 코드</button>
     </div>
     <div class="bar" id="ordBar">
-      <div class="tb2"><button class="btn w pk kmopen" type="button" id="kmOpen">＋ 카톡 주문 등록</button><button class="btn w kmopen" type="button" id="dpOpen">📸 입금내역 캡처 매칭</button></div>
+      <div class="tb2"><button class="btn w pk kmopen" type="button" id="kmOpen">＋ 카톡 주문 등록</button><button class="btn w kmopen" type="button" id="dpOpen">📸 입금내역 캡처 매칭</button><button class="btn w kmopen xlopen" type="button" id="xlOpen">📊 은행 입금내역(엑셀/CSV) 일괄 확인</button></div>
       <div class="chips" id="chips"></div>
       <div class="sbox"><input id="q" type="search" placeholder="거래처·주문자·뒷자리·발주번호" aria-label="주문 검색"></div>
     </div>
@@ -679,7 +679,7 @@ function dpRowsRender(){
     el.querySelectorAll('input').forEach(inp=>inp.oninput=()=>{r[inp.dataset.k]=inp.dataset.k==='amount'?Number(inp.value.replace(/[^\d]/g,''))||'':inp.value.trim();DP.res=null;$('dpRes').innerHTML=''});
     el.querySelector('[data-x]').onclick=()=>{DP.rows.splice(+el.dataset.i,1);dpRowsRender();DP.res=null;$('dpRes').innerHTML=''}});
 }
-const DP_BADGE={EXACT:'🟢 정확 일치',MULTI:'🟡 복수 후보 확인 필요',AMOUNT_ONLY:'🟡 금액 일치 / 이름 상이',UNMATCHED:'🔴 매칭 없음'};
+const DP_BADGE={EXACT:'🟢 자동 매칭',MULTI:'🟡 복수 후보 확인 필요',AMOUNT_ONLY:'🟡 금액만 일치',UNMATCHED:'🔴 매칭 없음'};
 async function dpMatch(){
   const items=DP.rows.filter(r=>r.amount>0);if(!items.length){toast('입금액이 있는 입금 건을 넣어 주세요');return}
   const b=$('dpMatch');b.disabled=true;b.textContent='매칭 중…';
@@ -710,6 +710,63 @@ async function dpConfirm(){
     $('dpRes').innerHTML=`<p class="ok" style="font-weight:900;font-size:17px">✅ 입금확인 ${r.done.length}건 완료</p>${r.done.map(p=>`<div class="ps">${esc(p)} → 입금확인(발주전)</div>`).join('')}${r.skipped.map(s=>`<div class="ps" style="color:#c00">${esc(s.po)} 건너뜀: ${esc(s.reason)}</div>`).join('')}`;
     load();
   }catch(e){$('dpErr').textContent=e.message;b.disabled=false;b.textContent='선택 건 일괄 입금확인 처리'}
+}
+
+/* ---------- 📊 은행 입금내역(엑셀/CSV) 일괄 확인 ---------- */
+/* 은행 엑셀·CSV의 표(2차원 배열) → 입금 건 [{date,name,amount}]. 위쪽 계좌 요약 줄은 건너뛰고 머리글 줄을 찾아 열을 자동 인식 (기업·국민·신한·우리·하나·농협·카카오뱅크·토스뱅크 등) */
+const XL_H={date:/거래일시|입금일시|거래일자|거래일|거래시간|일시|날짜/,inAmt:/입금액|맡기신\s*금액|입금\s*금액|입금\(원\)|^입금$|받은\s*금액/,outAmt:/출금액|찾으신\s*금액|^출금$|출금\s*금액/,amt:/거래금액|^금액$|금액\(원\)/,type:/구분|입출금|거래구분|거래종류|거래유형|^유형$/,
+  name:[/입금자명|^입금자$/,/보낸\s*분|보내는\s*분|받는분\/보낸분|의뢰인|상대방|송금인/,/기재내용|거래내용/,/적요/,/내용|메모/]};
+function xlRows(aoa){
+  const clean=v=>String(v==null?'':v).replace(/\s+/g,' ').trim(),num=v=>{const s=String(v==null?'':v).replace(/[,원\s]/g,'');return /^[+-]?\d+(\.\d+)?$/.test(s)?Number(s):0};
+  let h=-1,col={};
+  for(let i=0;i<Math.min(aoa.length,40)&&h<0;i++){const r=(aoa[i]||[]).map(clean),f=re=>r.findIndex(c=>c&&re.test(c.replace(/\s/g,'')));   /* '거래 금액'·'거래 유형'처럼 띄어 쓴 머리글도 */
+    const c={date:f(XL_H.date),inAmt:f(XL_H.inAmt),outAmt:f(XL_H.outAmt),amt:f(XL_H.amt),type:f(XL_H.type),name:-1};
+    for(const re of XL_H.name){const k=f(re);if(k>=0&&k!==c.date&&k!==c.inAmt&&k!==c.type){c.name=k;break}}
+    if((c.inAmt>=0||c.amt>=0)&&(c.name>=0||c.date>=0)){h=i;col=c}}
+  if(h<0)throw new Error('머리글(입금액·기재내용 등)을 찾지 못했어요. 은행에서 받은 거래내역 파일인지 확인해 주세요');
+  const out=[];
+  for(let i=h+1;i<aoa.length;i++){const r=aoa[i]||[];
+    let a=col.inAmt>=0?num(r[col.inAmt]):0;
+    if(col.inAmt<0&&col.amt>=0){const v=num(r[col.amt]);a=col.type>=0?(/입금|\+/.test(clean(r[col.type]))?Math.abs(v):0):(v>0?v:0)}   /* 금액 한 칸: 구분이 입금이거나, 구분 칸이 없으면 +금액만 */
+    if(!(a>0))continue;
+    const name=col.name>=0?clean(r[col.name]):'',date=col.date>=0?clean(r[col.date]):'';
+    if(r.some(c=>/^(합계|총계|소계|누계|합\s*계)/.test(clean(c))))continue;   /* 맨 아래 합계 줄 빼기 (어느 칸에 있든) */
+    out.push({date:date.slice(0,20),name:name.slice(0,40),amount:Math.round(a)});
+  }
+  return out;
+}
+let XLS=null;
+function xlLib(){if(window.XLSX)return Promise.resolve();if(XLS)return XLS;XLS=new Promise((ok,no)=>{const s=document.createElement('script');s.src='https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js';s.onload=ok;s.onerror=()=>{XLS=null;no(new Error('엑셀 읽기 도구를 불러오지 못했어요. 인터넷 연결을 확인해 주세요'))};document.head.appendChild(s)});return XLS}
+async function xlRead(file){
+  await xlLib();
+  const buf=await file.arrayBuffer();let wb;
+  if(/\.csv$|\.txt$/i.test(file.name)||/csv|text/.test(file.type)){
+    let text;try{text=new TextDecoder('utf-8',{fatal:true}).decode(buf)}catch(e){text=new TextDecoder('euc-kr').decode(buf)}   /* 국내 은행 CSV는 EUC-KR이 많음 */
+    wb=XLSX.read(text.replace(/^﻿/,''),{type:'string',raw:true});
+  }else wb=XLSX.read(new Uint8Array(buf),{type:'array'});
+  let best=[];for(const n of wb.SheetNames){try{const r=xlRows(XLSX.utils.sheet_to_json(wb.Sheets[n],{header:1,raw:false,defval:''}));if(r.length>best.length)best=r}catch(e){if(wb.SheetNames.length===1)throw e}}
+  return best;
+}
+function xlPane(){
+  DP={rows:[],res:null};openPo='';
+  $('pT').textContent='📊 은행 입금내역 일괄 확인';
+  $('pB').innerHTML=`<div class="km dp">
+    <p class="ps">인터넷뱅킹에서 받은 <b>거래내역 엑셀(.xlsx·.xls) 또는 CSV</b>를 올리세요. 입금 건만 골라 입금대기 주문과 맞춰 봅니다.</p>
+    <div class="drop" id="xlDrop" tabindex="0"><b>📂 파일을 끌어다 놓거나 아래에서 고르기</b><span class="ps">기업·국민·신한·우리·하나·농협·카카오뱅크·토스뱅크 등</span><input type="file" id="xlFile" accept=".xlsx,.xls,.csv,text/csv,application/vnd.ms-excel,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" multiple></div>
+    <div class="ps" id="xlMsg"></div>
+    <h4>① 입금 건 (틀린 곳은 바로 고치세요)</h4>
+    <div id="dpRows"></div><button class="btn w ghost" type="button" id="dpAdd">＋ 입금 건 직접 추가</button>
+    <button class="btn w pk" type="button" id="dpMatch" style="margin-top:10px">입금대기 주문과 매칭</button>
+    <div id="dpRes"></div></div>`;
+  openPane();
+  const go=async files=>{files=[...files].filter(f=>/\.(xlsx|xls|csv|txt)$/i.test(f.name));if(!files.length){toast('엑셀(.xlsx·.xls) 또는 CSV 파일을 올려 주세요');return}
+    const m=$('xlMsg');m.textContent='파일 읽는 중…';
+    try{let n=0;for(const f of files){const r=await xlRead(f);DP.rows=DP.rows.concat(r);n+=r.length}
+      dpRowsRender();m.textContent=`입금 ${n}건을 읽었어요 (출금·0원 줄은 뺌). 아래 [매칭]을 눌러 주세요`;if(n)dpMatch()}catch(e){m.textContent='❌ '+e.message}};
+  $('xlFile').addEventListener('change',e=>go(e.target.files));
+  const d=$('xlDrop');['dragenter','dragover'].forEach(t=>d.addEventListener(t,e=>{e.preventDefault();d.classList.add('on')}));['dragleave','drop'].forEach(t=>d.addEventListener(t,e=>{e.preventDefault();d.classList.remove('on')}));
+  d.addEventListener('drop',e=>go(e.dataTransfer.files||[]));
+  $('dpAdd').onclick=()=>{DP.rows.push({date:'',name:'',amount:''});dpRowsRender()};$('dpMatch').onclick=dpMatch;dpRowsRender();
 }
 
 /* ---------- 할인 코드(쿠폰) 관리 ---------- */
@@ -758,7 +815,7 @@ $('lGo').addEventListener('click',login);$('pin').addEventListener('keydown',e=>
 $('out').addEventListener('click',()=>logout(''));
 $('reload').addEventListener('click',()=>{STK=null;load()});
 $('pX').addEventListener('click',closePane);
-$('kmOpen').addEventListener('click',kmPane);$('dpOpen').addEventListener('click',dpPane);$('pane').addEventListener('click',e=>{if(e.target===$('pane'))closePane()});
+$('kmOpen').addEventListener('click',kmPane);$('dpOpen').addEventListener('click',dpPane);$('xlOpen').addEventListener('click',xlPane);$('pane').addEventListener('click',e=>{if(e.target===$('pane'))closePane()});
 document.addEventListener('keydown',e=>{if(e.key==='Escape')closePane()});
 $('q').addEventListener('input',e=>{Q=e.target.value.trim();renderOrders()});
 document.addEventListener('click',e=>{
