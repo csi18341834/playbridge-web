@@ -5,7 +5,7 @@
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<script>(function(){var B='b9631ad51c';try{fetch('admin-version.json?t='+Date.now(),{cache:'no-store'}).then(function(r){return r.ok?r.json():null}).then(function(j){if(!j||!j.v||j.v===B)return;var u=new URL(location.href);if(u.searchParams.get('v')===j.v)return;u.searchParams.set('v',j.v);location.replace(u.toString())}).catch(function(){})}catch(e){}})();</script>
+<script>(function(){var B='41d5bb8a81';try{fetch('admin-version.json?t='+Date.now(),{cache:'no-store'}).then(function(r){return r.ok?r.json():null}).then(function(j){if(!j||!j.v||j.v===B)return;var u=new URL(location.href);if(u.searchParams.get('v')===j.v)return;u.searchParams.set('v',j.v);location.replace(u.toString())}).catch(function(){})}catch(e){}})();</script>
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <meta name="robots" content="noindex,nofollow">
@@ -359,6 +359,8 @@ function detail(po,focusInv){
     <div class="cxrow">${o.status===CANCEL?`<button class="btn ghost" type="button" id="unCx">취소 되돌리기 (입금대기로)</button>`:`<button class="cxbtn" type="button" id="cx">주문 취소</button>`}</div>
     <div class="cxbox" id="cxBox" hidden><label><input type="checkbox" id="rst" checked> 재고 칸(숫자)도 ${o.status===CANCEL?'다시 차감':'되돌리기'}</label><button class="btn w" type="button" id="cxGo" style="margin-top:8px;background:#c00">${o.status===CANCEL?'되돌리기 확정':'취소 확정'}</button></div>
   </div>
+  <div class="sec"><h3>품목 ${o.items.length}종 · ${o.packs}팩</h3><ul class="items">${o.items.map(t=>{const x=nm(t.n);return `<li>${picH(t)}<span>${esc(x.main)}${itemTag(t)}${x.op?`<span class="op">${esc(x.op)}</span>`:''}${x.pa?`<span class="ps">${esc(x.pa)} · ${esc(t.unit)}</span>`:''}</span><b>${t.q}팩<br><small style="font-weight:700">${won(t.sum)}</small></b></li>`}).join('')}</ul>
+    <div class="kv"><span>상품</span><span>${won(o.sub)}</span></div>${o.depName||o.depAt?`<div class="kv"><span>입금확인</span><span>${esc(o.depName||'')}${o.depAt?' · '+esc(o.depAt):''}</span></div>`:''}${o.pgType==='PG_CARD'?`<div class="kv"><span>결제수단</span><span>카드PG · ${esc(o.pgStatus||'')}${o.receipt?` · <a href="${esc(o.receipt)}" target="_blank" rel="noopener">매출전표</a>`:''}</span></div>`:''}${o.disc?`<div class="kv" style="color:#c00"><span>할인 ${esc(o.coupon)}</span><span>-${won(o.disc)}</span></div>`:''}<div class="kv"><span>배송비</span><span>${o.ship?won(o.ship):'무료'}</span></div><div class="kv t"><span>합계</span><span>${won(o.total)}</span></div></div>
   ${o.memo?`<div class="req" style="margin:0 0 12px">요청사항: ${esc(o.memo)}</div>`:''}
   <div class="sec"><h3>${o.card?'💳 법인카드 결제링크 · 안내문':'입금 안내문'}</h3>
     ${o.card?`<input class="f" id="plink" type="url" inputmode="url" autocomplete="off" placeholder="https:// 카드 결제링크 붙여넣기" value="${esc(o.payLink||'')}" aria-label="카드 결제링크">
@@ -379,8 +381,6 @@ function detail(po,focusInv){
     ${o.invoice?`<button class="btn w ghost" type="button" id="kakao">대표님 발송안내 카톡 멘트 복사</button>`:''}</div>
     <label class="chk"><input type="checkbox" id="part" ${o.partial?'checked':''}> 부분 발송 (미발송 잔여 품목 있음)</label>
   </div>
-  <div class="sec"><h3>품목 ${o.items.length}종 · ${o.packs}팩</h3><ul class="items">${o.items.map(t=>{const x=nm(t.n);return `<li>${picH(t)}<span>${esc(x.main)}${itemTag(t)}${x.op?`<span class="op">${esc(x.op)}</span>`:''}${x.pa?`<span class="ps">${esc(x.pa)} · ${esc(t.unit)}</span>`:''}</span><b>${t.q}팩<br><small style="font-weight:700">${won(t.sum)}</small></b></li>`}).join('')}</ul>
-    <div class="kv"><span>상품</span><span>${won(o.sub)}</span></div>${o.depName||o.depAt?`<div class="kv"><span>입금확인</span><span>${esc(o.depName||'')}${o.depAt?' · '+esc(o.depAt):''}</span></div>`:''}${o.pgType==='PG_CARD'?`<div class="kv"><span>결제수단</span><span>카드PG · ${esc(o.pgStatus||'')}${o.receipt?` · <a href="${esc(o.receipt)}" target="_blank" rel="noopener">매출전표</a>`:''}</span></div>`:''}${o.disc?`<div class="kv" style="color:#c00"><span>할인 ${esc(o.coupon)}</span><span>-${won(o.disc)}</span></div>`:''}<div class="kv"><span>배송비</span><span>${o.ship?won(o.ship):'무료'}</span></div><div class="kv t"><span>합계</span><span>${won(o.total)}</span></div></div>
   ${(o.history||[]).length?`<div class="sec"><h3>변경 이력</h3><ul class="hist">${o.history.slice().reverse().map(h=>`<li>${esc(h)}</li>`).join('')}</ul></div>`:''}
   <div class="sec"><h3>배송지 · 연락처</h3><div class="addr">${esc(o.addr||'-')}</div><div class="addr" style="margin-top:4px;font-weight:700">${esc(o.tel)}</div>
     <div class="contact"><a href="tel:${esc(o.tel.replace(/[^0-9+]/g,''))}">📞 전화 걸기</a><button type="button" id="addrCp">주소 복사</button></div></div>`;
