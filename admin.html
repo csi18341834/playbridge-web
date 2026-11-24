@@ -233,7 +233,10 @@ const sIdx=s=>s===CANCEL?-1:STAGES.indexOf(s);
 const bCls=s=>s===CANCEL?'bx':'b'+Math.max(0,STAGES.indexOf(s));
 const store={get(k){try{return sessionStorage.getItem(k)}catch(e){return null}},set(k,v){try{v==null?sessionStorage.removeItem(k):sessionStorage.setItem(k,v)}catch(e){}}};
 const SHOW_STATS=false;   /* 통계 숨김 (2026-11-24 요청자 '잠시 안 보이게'): '📊 간단 통계' 탭 + 주문 탭 위 요약 4칸. 다시 보이게 하려면 true */
-let PIN=store.get('pb_admin')||'',S={orders:[],counts:{}},F='전체',Q='',TAB='ord',AGG='buy',STK=null,openPo='',STP='7d';
+/* 이 기기에서 로그인 유지 30일 (2026-11-24 요청자 '로그인 너무 느림'): 다시 열면 비밀번호 없이 저장된 주문을 바로 보여 주고 뒤에서 최신으로. '로그아웃'을 누르면 지움 */
+const keep={get(k){try{const o=JSON.parse(localStorage.getItem(k)||'null');if(o&&o.e>Date.now())return o.v;localStorage.removeItem(k)}catch(e){}return null},
+  set(k,v){try{v==null?localStorage.removeItem(k):localStorage.setItem(k,JSON.stringify({v:v,e:Date.now()+30*864e5}))}catch(e){}}};
+let PIN=keep.get('pb_admin')||store.get('pb_admin')||'',S={orders:[],counts:{}},F='전체',Q='',TAB='ord',AGG='buy',STK=null,openPo='',STP='7d';
 
 /* 서버 호출 (text/plain → 사전요청 없이 Apps Script doPost) */
 function call(action,payload){
@@ -252,12 +255,12 @@ async function login(){
   $('lGo').disabled=true;$('lErr').textContent='';PIN=p;
   const lb=$('lGo').textContent;$('lGo').textContent='불러오는 중…';
   /* 로그인 = 주문 불러오기 한 번 (예전엔 로그인 확인 → 주문 불러오기 두 번 왕복이라 느렸음) */
-  try{const r=await call('adminSummary',{});store.set('pb_admin',p);start(r)}
+  try{const r=await call('adminSummary',{});keep.set('pb_admin',p);start(r)}
   catch(e){PIN='';$('lErr').textContent=e.message}finally{$('lGo').disabled=false;$('lGo').textContent=lb}
 }
-function logout(msg){PIN='';store.set('pb_admin',null);store.set('pb_sum',null);$('app').hidden=true;$('login').hidden=false;closePane();$('pin').value='';if(msg)$('lErr').textContent=msg}
+function logout(msg){PIN='';store.set('pb_admin',null);keep.set('pb_admin',null);keep.set('pb_sum',null);$('app').hidden=true;$('login').hidden=false;closePane();$('pin').value='';if(msg)$('lErr').textContent=msg}
 function start(r){$('login').hidden=true;$('app').hidden=false;$('weak').hidden=!(r&&r.weakPin);if(r&&r.orders)show(r);else load()}
-function show(r){S=r;$('upd').textContent=r.at+' 기준';render();if(openPo)detail(openPo);try{store.set('pb_sum',JSON.stringify(r))}catch(e){}}
+function show(r){S=r;$('upd').textContent=r.at+' 기준';render();if(openPo)detail(openPo);keep.set('pb_sum',r)}
 
 /* ---------- 데이터 ---------- */
 async function load(){
@@ -850,9 +853,11 @@ document.addEventListener('click',e=>{
   else if(t.dataset.next){const o=S.orders.find(x=>x.po===t.dataset.next);const i=sIdx(o.status);if(i===4)detail(o.po,true);else setStage(o.po,STAGES[i+1],{},t)}
 });
 /* 새로고침: 이 탭에 저장해 둔 주문을 바로 보여 주고, 뒤에서 최신으로 다시 불러옴 */
-if(PIN){let c=null;try{c=JSON.parse(store.get('pb_sum')||'null')}catch(e){}
+if(PIN){const c=keep.get('pb_sum');
   if(c&&c.orders){$('login').hidden=true;$('app').hidden=false;S=c;$('upd').textContent=c.at+' 기준 (새로 불러오는 중…)';render()}
   call('adminSummary',{}).then(start,e=>/비밀번호/.test(e.message)?logout(''):c?toast(e.message):logout(''))}
+/* 로그인 화면: 비밀번호 적는 동안 서버를 미리 깨워 둠 (첫 호출이 느린 것 줄이기) */
+else fetch(API_URL+'?action=ping',{mode:'no-cors'}).catch(()=>{});
 </script>
 </body>
 </html>
