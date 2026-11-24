@@ -5,7 +5,7 @@
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<script>(function(){var B='0bd4c74582';try{fetch('admin-version.json?t='+Date.now(),{cache:'no-store'}).then(function(r){return r.ok?r.json():null}).then(function(j){if(!j||!j.v||j.v===B)return;var u=new URL(location.href);if(u.searchParams.get('v')===j.v)return;u.searchParams.set('v',j.v);location.replace(u.toString())}).catch(function(){})}catch(e){}})();</script>
+<script>(function(){var B='0bfcd2567b';try{fetch('admin-version.json?t='+Date.now(),{cache:'no-store'}).then(function(r){return r.ok?r.json():null}).then(function(j){if(!j||!j.v||j.v===B)return;var u=new URL(location.href);if(u.searchParams.get('v')===j.v)return;u.searchParams.set('v',j.v);location.replace(u.toString())}).catch(function(){})}catch(e){}})();</script>
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <meta name="robots" content="noindex,nofollow">
@@ -193,7 +193,7 @@ textarea{width:100%;min-height:84px;border:2px solid var(--line);border-radius:1
 .b88 .ck{display:flex;gap:10px;align-items:center;min-height:44px;font-weight:800;font-size:15px;border-bottom:1px solid var(--line)}.b88 .ck:last-child{border-bottom:0}.b88 .ck input{width:24px;height:24px;flex:none}.b88 .ck.on span{color:var(--ok);text-decoration:line-through}
 .b88r{display:grid;grid-template-columns:52px 1fr;gap:8px;padding:10px 0;border-bottom:1px solid var(--line)}.b88r:last-child{border-bottom:0}.b88r .pic{width:52px;height:52px;border-radius:10px;border:1px solid var(--line);background:#f3f3f3 center/cover no-repeat}
 .b88r b{display:block;font-size:15px;line-height:1.35}.b88r .act{grid-column:1/-1;display:grid;grid-template-columns:84px 1fr;gap:6px}.b88r .act input{min-height:44px;border:2px solid var(--line);border-radius:10px;font-size:16px;padding:0 8px;min-width:0;text-align:center}.b88r .act .btn{min-height:44px;font-size:15px;padding:0 8px}
-.b88r a.pic{display:block;cursor:zoom-in}.need88{border:2px solid var(--pk)}.need88 .nd{display:block;font-size:20px;font-weight:900;color:var(--pk);line-height:1.3}.need88 .nd small{font-size:14px;color:var(--sub)}.b88r .op{color:var(--pk);font-size:13px}.bt88{display:grid;gap:8px;margin-top:10px}details.sec>summary{font-weight:900;font-size:15px;cursor:pointer;min-height:32px;list-style-position:inside}.b88c .tl{display:flex;gap:8px;align-items:center;min-width:0}.pic88{flex:none;width:44px;height:44px;border-radius:9px;border:1px solid var(--line);background:#f3f3f3 center/cover no-repeat;display:block}a.pic88{cursor:zoom-in}
+.b88r a.pic{display:block;cursor:zoom-in}.kr88{border:2px solid #2f6fd6}.kg{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:4px;margin:4px 0}.kg span{font-size:12px;font-weight:800;color:var(--sub);background:#f6f7fb;border-radius:8px;padding:4px 6px}.kg b{display:block;font-size:16px;color:var(--ink)}.kg b small{font-size:11px;color:var(--sub)}.kg b.o{color:#2f6fd6}.need88{border:2px solid var(--pk)}.need88 .nd{display:block;font-size:20px;font-weight:900;color:var(--pk);line-height:1.3}.need88 .nd small{font-size:14px;color:var(--sub)}.b88r .op{color:var(--pk);font-size:13px}.bt88{display:grid;gap:8px;margin-top:10px}details.sec>summary{font-weight:900;font-size:15px;cursor:pointer;min-height:32px;list-style-position:inside}.b88c .tl{display:flex;gap:8px;align-items:center;min-width:0}.pic88{flex:none;width:44px;height:44px;border-radius:9px;border:1px solid var(--line);background:#f3f3f3 center/cover no-repeat;display:block}a.pic88{cursor:zoom-in}
 .b88c{background:var(--card);border:2px solid var(--line);border-radius:16px;padding:12px;margin-bottom:10px}.b88c .t{display:flex;gap:8px;align-items:flex-start;justify-content:space-between}.b88c .t b{font-size:16px;line-height:1.35;min-width:0;overflow-wrap:anywhere}
 .b88c .bt{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:8px}.b88c .bt .btn{min-height:46px;font-size:15px;padding:0 8px}.b88c .bt .w2{grid-column:1/-1}.b88c a.btn{display:flex;align-items:center;justify-content:center;text-decoration:none}
 .tag88{font-style:normal;font-size:12px;font-weight:900;padding:2px 8px;border-radius:99px;background:#eef;color:#4a3aa8;white-space:nowrap}.tag88.new{background:#fff1d6;color:#a35b00}.tag88.ok{background:#e3f6ec;color:var(--ok)}.lowp{color:#c0263e;font-weight:900}
@@ -416,8 +416,8 @@ function shipMsg(o){
 /* ---------- 1688 발주·출고 품목합계 ---------- */
 function renderAgg(){
   const buy=S.orders.filter(o=>o.status===STAGES[1]),pick=S.orders.filter(o=>o.status===STAGES[4]),live=S.orders.filter(o=>o.status!==CANCEL&&o.status!==STAGES[5]);
-  let h=`<div class="seg seg3"><button type="button" data-agg="buy" class="${AGG==='buy'?'on':''}">1688 발주용<br><small>입금확인(발주전) ${buy.length}건</small></button><button type="button" data-agg="pick" class="${AGG==='pick'?'on':''}">국내 포장용<br><small>한국도착(통관) ${pick.length}건</small></button><button type="button" data-agg="all" class="${AGG==='all'?'on':''}">전체 SKU 합계<br><small>진행 중 ${live.length}건</small></button></div>`;
-  AGGHEAD=h;if(AGG==='buy'){renderBuy();return}   /* 1688 발주용 = 주문서 기준 오늘 1688 주문 목록 (2026-11-24 합침) */
+  let h=`<div class="seg"><button type="button" data-agg="buy" class="${AGG==='buy'?'on':''}">🇨🇳 오늘 1688 발주<br><small>입금확인(발주전) ${buy.length}건</small></button><button type="button" data-agg="kr" class="${AGG==='kr'?'on':''}">🇰🇷 한국 창고 재고<br><small>바로발송 상품</small></button><button type="button" data-agg="pick" class="${AGG==='pick'?'on':''}">국내 포장용<br><small>한국도착(통관) ${pick.length}건</small></button><button type="button" data-agg="all" class="${AGG==='all'?'on':''}">전체 SKU 합계<br><small>진행 중 ${live.length}건</small></button></div>`;
+  AGGHEAD=h;if(AGG==='buy'||AGG==='kr'){renderBuy();return}   /* 1688 발주용 = 주문서 기준 오늘 1688 주문 목록 (2026-11-24 합침) */
   if(AGG==='all'){   /* 진행 중(취소·국내발송완료 뺀) 모든 주문의 상품코드별 팩 합계 — 사입 참고용 */
     const m={};live.forEach(o=>o.items.forEach(t=>{const k=t.c||nm(t.n).main;if(!m[k])m[k]={c:t.c,name:nm(t.n).main,pack:packOf(t.unit),q:0,st:{}};m[k].q+=Number(t.q)||0;m[k].st[o.status]=(m[k].st[o.status]||0)+(Number(t.q)||0)}));
     const L=Object.values(m).sort((a,b)=>b.q-a.q||String(a.c).localeCompare(String(b.c))),tq=L.reduce((a,b)=>a+b.q,0),tp=L.reduce((a,b)=>a+b.q*b.pack,0);
@@ -876,10 +876,22 @@ function needHtml(N){if(!N)return '';const P=N.paid,W=N.wait,tot=P.items.reduce(
       <div class="bt88"><button type="button" class="btn w ghost" id="ndCopy">📋 1688 주문 목록 카톡용 복사</button><button type="button" class="btn w pk" id="ndDone">1688 주문 완료 → 주문 ${P.pos.length}건 '1688발주완료'로</button></div>`
       :'<div class="ps">지금 1688에 주문할 것이 없습니다 (입금확인된 주문의 예약 상품 기준)</div>'}</div>
     ${W.items.length?`<details class="sec"><summary>⏳ 입금 대기 중 (입금되면 위 목록에 올라옴) · ${W.items.length}품목 · 주문 ${W.pos.length}건</summary>${W.items.map(needRow).join('')}</details>`:''}`}
+/* 🇰🇷 한국 창고 재고 파악용: 창고 실물 = 판매 가능(시트 재고) + 아직 안 나간 주문 */
+const pkN=(n,pk)=>n==null?'':`${n}팩${pk>1?` <small>(${(n*pk).toLocaleString()}개)</small>`:''}`;
+function krHtml(D){D=D||[];const F=D.filter(x=>x.fast);
+  return `<div class="sec kr88"><h3>🇰🇷 한국 창고 재고 <span class="ps" style="display:inline">(바로발송 상품 ${F.length}개)</span></h3>
+    <p class="ps" style="margin:0 0 6px">창고 실물 = 판매 가능 + 아직 안 나간 주문. 실사 숫자와 다르면 시트 재고 칸(판매 가능)을 고치세요.</p>
+    ${F.length?F.map(x=>`<div class="b88r">${b88Pic(x.pic,'pic')}<div><b>${esc(nm(x.n).main)}${x.hidden?' <i class="tag88">숨김</i>':''}</b>
+      <div class="kg"><span>창고 실물<b>${x.real!=null?pkN(x.real,x.pack):'원활'}</b></span><span>출고 대기<b class="${x.out?'o':''}">${pkN(x.out,x.pack)||'0팩'}</b></span><span>판매 가능<b class="${x.sell!=null&&x.sell<=3?'lowp':''}">${x.sell!=null?pkN(x.sell,x.pack):esc(x.raw)}</b></span></div>
+      ${x.outOrders.length?`<span class="ps">${x.outOrders.map(o=>`${esc(o.shop)} ${o.q}팩(${esc(o.st)})`).join(' · ')}</span>`:''}
+      <span class="ps">${esc(x.c)} · ${x.pack}개입</span></div></div>`).join(''):'<div class="ps">바로발송 상품이 없습니다</div>'}
+    <button type="button" class="btn w ghost" id="krCp" style="margin-top:10px">📋 한국 창고 재고 복사 (실사용)</button></div>`}
+function krText(D){const d=new Date();return `[플레이브릿지 한국 창고 재고 ${d.getMonth()+1}/${d.getDate()}]\n`+(D||[]).filter(x=>x.fast).map((x,i)=>`${i+1}. ${nm(x.n).main} - 창고 ${x.real!=null?x.real+'팩'+(x.pack>1?`(${x.real*x.pack}개)`:''):'원활'} / 출고대기 ${x.out}팩 / 판매가능 ${x.sell!=null?x.sell+'팩':x.raw}`).join('\n')}
 async function renderBuy(force){
   const m=$('main');
   if(!BUY||force){if(!BUY)m.innerHTML=AGGHEAD+'<div class="spin">불러오는 중…</div>';try{BUY=await call('get1688OrderDashboard',{})}catch(e){m.innerHTML=`<div class="empty">${esc(e.message)}</div>`;return}}
-  if(TAB!=='agg'||AGG!=='buy')return;
+  if(TAB!=='agg'||(AGG!=='buy'&&AGG!=='kr'))return;
+  if(AGG==='kr'){m.innerHTML=AGGHEAD+krHtml(BUY.domestic);const c=$('krCp');if(c)c.onclick=()=>copy(krText(BUY.domestic),'한국 창고 재고를 복사했습니다');return}
   const B=BUY,ST=B.stages,c=B.counts,ck=new Set(B.checked),L=B.list.filter(x=>BUYF==='전체'?true:x.status===BUYF);
   const kpi=(lab,val,sub)=>`<div class="kpi"><span>${lab}</span><b>${val}</b><small>${sub}</small></div>`;
   const next={'발주대기':['1688 결제완료 체크',ST[1]],'1688결제완료':['배대지출고',ST[2]],'배대지출고':['✅ 창고입고완료(+재고반영)','IN']};
