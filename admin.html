@@ -5,7 +5,7 @@
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<script>(function(){var B='93f064df7d';try{fetch('admin-version.json?t='+Date.now(),{cache:'no-store'}).then(function(r){return r.ok?r.json():null}).then(function(j){if(!j||!j.v||j.v===B)return;var u=new URL(location.href);if(u.searchParams.get('v')===j.v)return;u.searchParams.set('v',j.v);location.replace(u.toString())}).catch(function(){})}catch(e){}})();</script>
+<script>(function(){var B='e1b6f3c2c7';try{fetch('admin-version.json?t='+Date.now(),{cache:'no-store'}).then(function(r){return r.ok?r.json():null}).then(function(j){if(!j||!j.v||j.v===B)return;var u=new URL(location.href);if(u.searchParams.get('v')===j.v)return;u.searchParams.set('v',j.v);location.replace(u.toString())}).catch(function(){})}catch(e){}})();</script>
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <meta name="robots" content="noindex,nofollow">
@@ -283,7 +283,7 @@ async function login(){
   catch(e){PIN='';$('lErr').textContent=e.message}finally{$('lGo').disabled=false;$('lGo').textContent=lb}
 }
 function logout(msg){PIN='';store.set('pb_admin',null);keep.set('pb_admin',null);keep.set('pb_sum',null);$('app').hidden=true;$('login').hidden=false;closePane();$('pin').value='';if(msg)$('lErr').textContent=msg}
-function start(r){$('login').hidden=true;$('app').hidden=false;$('weak').hidden=!(r&&r.weakPin);if(r&&r.orders)show(r);else load()}
+function start(r){$('login').hidden=true;$('app').hidden=false;if(r&&r.orders)show(r);else load()}
 /* 품목 사진 (2026-11-24 요청자): 서버가 준 t.pic, 단계 변경 후 받은 주문엔 없을 수 있어 코드+품명으로 기억해 둔 것 사용. 누르면 큰 사진 새 창 */
 const PICS={};
 function picOf(t){return t.pic||PICS[t.c+'|'+t.n]||''}
@@ -293,7 +293,7 @@ function show(r){S=r;(r.orders||[]).forEach(o=>o.items.forEach(t=>{if(t.pic)PICS
 /* ---------- 데이터 ---------- */
 async function load(){
   $('reload').disabled=true;
-  try{const r=await call('adminSummary',{});$('weak').hidden=!r.weakPin;show(r)}
+  try{const r=await call('adminSummary',{});show(r)}
   catch(e){if(PIN)$('main').innerHTML=`<div class="empty">${esc(e.message)}<br><br><button class="btn" type="button" onclick="load()">다시 불러오기</button></div>`}
   finally{$('reload').disabled=false}
 }
