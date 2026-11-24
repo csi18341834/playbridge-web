@@ -5,7 +5,7 @@
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<script>(function(){var B='e1b6f3c2c7';try{fetch('admin-version.json?t='+Date.now(),{cache:'no-store'}).then(function(r){return r.ok?r.json():null}).then(function(j){if(!j||!j.v||j.v===B)return;var u=new URL(location.href);if(u.searchParams.get('v')===j.v)return;u.searchParams.set('v',j.v);location.replace(u.toString())}).catch(function(){})}catch(e){}})();</script>
+<script>(function(){var B='396dccb6d5';try{fetch('admin-version.json?t='+Date.now(),{cache:'no-store'}).then(function(r){return r.ok?r.json():null}).then(function(j){if(!j||!j.v||j.v===B)return;var u=new URL(location.href);if(u.searchParams.get('v')===j.v)return;u.searchParams.set('v',j.v);location.replace(u.toString())}).catch(function(){})}catch(e){}})();</script>
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <meta name="robots" content="noindex,nofollow">
@@ -41,6 +41,7 @@ header{position:sticky;top:0;z-index:20;background:var(--y);padding:10px 16px 0;
 .sub{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:4px;margin-top:10px}
 .sub button{min-height:44px;border:0;border-radius:12px 12px 0 0;background:rgba(255,255,255,.55);font-size:14px;font-weight:900;line-height:1.2;padding:4px 2px}
 .sub button.on{background:var(--bg)}
+@media(max-width:420px){.sub{gap:2px}.sub button{font-size:12px;letter-spacing:-.4px;padding:4px 1px;word-break:keep-all}}   /* 탭 6개(통계 켬)일 때 폰에서 글자 3줄 방지 */
 .bar{background:var(--bg);margin:0 -16px;padding:10px 16px 8px}
 .chips{display:flex;gap:6px;overflow-x:auto;padding-bottom:4px;scrollbar-width:none;-webkit-overflow-scrolling:touch}
 .chips::-webkit-scrollbar{display:none}
@@ -220,8 +221,8 @@ textarea{width:100%;min-height:84px;border:2px solid var(--line);border-radius:1
     <div class="top"><h1>주문 관리 <small id="upd"></small></h1><button class="ib" id="reload" type="button">새로고침</button><a class="ib" id="shop" href="https://playbridge.io.kr/" style="text-decoration:none;color:var(--ink);display:inline-flex;align-items:center">쇼핑몰</a></div>
     <div class="sub" role="tablist">
       <button type="button" data-tab="ord" class="on">주문<br>진행관리</button>
-      <button type="button" data-tab="agg">1688발주·<br>품목합계</button>
-      <button type="button" data-tab="stk">재고·<br>입고알림</button>
+      <button type="button" data-tab="agg">1688발주<br>품목합계</button>
+      <button type="button" data-tab="stk">재고<br>입고알림</button>
       <button type="button" data-tab="sta">📊<br>간단 통계</button>
       <button type="button" data-tab="cpn">🎟<br>할인 코드</button>
       <button type="button" data-tab="tax">🧾 세금<br>계산서</button>
@@ -251,7 +252,7 @@ const won=n=>Number(n||0).toLocaleString('ko-KR')+'원';
 const sIdx=s=>s===CANCEL?-1:STAGES.indexOf(s);
 const bCls=s=>s===CANCEL?'bx':'b'+Math.max(0,STAGES.indexOf(s));
 const store={get(k){try{return sessionStorage.getItem(k)}catch(e){return null}},set(k,v){try{v==null?sessionStorage.removeItem(k):sessionStorage.setItem(k,v)}catch(e){}}};
-const SHOW_STATS=false;   /* 통계 숨김 (2026-11-24 요청자 '잠시 안 보이게'): '📊 간단 통계' 탭 + 주문 탭 위 요약 4칸. 다시 보이게 하려면 true */
+const SHOW_STATS=true;   /* 통계 숨김 (2026-11-24 요청자 '잠시 안 보이게'): '📊 간단 통계' 탭 + 주문 탭 위 요약 4칸. 다시 보이게 하려면 true */
 /* 이 기기에서 로그인 유지 30일 (2026-11-24 요청자 '로그인 너무 느림'): 다시 열면 비밀번호 없이 저장된 주문을 바로 보여 주고 뒤에서 최신으로. '로그아웃'을 누르면 지움 */
 const keep={get(k){try{const o=JSON.parse(localStorage.getItem(k)||'null');if(o&&o.e>Date.now())return o.v;localStorage.removeItem(k)}catch(e){}return null},
   set(k,v){try{v==null?localStorage.removeItem(k):localStorage.setItem(k,JSON.stringify({v:v,e:Date.now()+30*864e5}))}catch(e){}}};
