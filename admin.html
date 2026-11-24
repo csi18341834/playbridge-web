@@ -250,16 +250,19 @@ function copy(t,msg){const ok=()=>toast(msg||'복사되었습니다');if(navigat
 async function login(){
   const p=$('pin').value.trim();if(!p){$('lErr').textContent='비밀번호를 적어주세요.';return}
   $('lGo').disabled=true;$('lErr').textContent='';PIN=p;
-  try{const r=await call('adminLogin',{});store.set('pb_admin',p);start(r)}
-  catch(e){PIN='';$('lErr').textContent=e.message}finally{$('lGo').disabled=false}
+  const lb=$('lGo').textContent;$('lGo').textContent='불러오는 중…';
+  /* 로그인 = 주문 불러오기 한 번 (예전엔 로그인 확인 → 주문 불러오기 두 번 왕복이라 느렸음) */
+  try{const r=await call('adminSummary',{});store.set('pb_admin',p);start(r)}
+  catch(e){PIN='';$('lErr').textContent=e.message}finally{$('lGo').disabled=false;$('lGo').textContent=lb}
 }
-function logout(msg){PIN='';store.set('pb_admin',null);$('app').hidden=true;$('login').hidden=false;closePane();$('pin').value='';if(msg)$('lErr').textContent=msg}
-function start(r){$('login').hidden=true;$('app').hidden=false;$('weak').hidden=!(r&&r.weakPin);load()}
+function logout(msg){PIN='';store.set('pb_admin',null);store.set('pb_sum',null);$('app').hidden=true;$('login').hidden=false;closePane();$('pin').value='';if(msg)$('lErr').textContent=msg}
+function start(r){$('login').hidden=true;$('app').hidden=false;$('weak').hidden=!(r&&r.weakPin);if(r&&r.orders)show(r);else load()}
+function show(r){S=r;$('upd').textContent=r.at+' 기준';render();if(openPo)detail(openPo);try{store.set('pb_sum',JSON.stringify(r))}catch(e){}}
 
 /* ---------- 데이터 ---------- */
 async function load(){
   $('reload').disabled=true;
-  try{const r=await call('adminSummary',{});S=r;$('upd').textContent=r.at+' 기준';render();if(openPo)detail(openPo)}
+  try{const r=await call('adminSummary',{});$('weak').hidden=!r.weakPin;show(r)}
   catch(e){if(PIN)$('main').innerHTML=`<div class="empty">${esc(e.message)}<br><br><button class="btn" type="button" onclick="load()">다시 불러오기</button></div>`}
   finally{$('reload').disabled=false}
 }
@@ -846,7 +849,10 @@ document.addEventListener('click',e=>{
   else if(t.dataset.inv)detail(t.dataset.inv,true);
   else if(t.dataset.next){const o=S.orders.find(x=>x.po===t.dataset.next);const i=sIdx(o.status);if(i===4)detail(o.po,true);else setStage(o.po,STAGES[i+1],{},t)}
 });
-if(PIN)call('adminLogin',{}).then(start,()=>logout(''));
+/* 새로고침: 이 탭에 저장해 둔 주문을 바로 보여 주고, 뒤에서 최신으로 다시 불러옴 */
+if(PIN){let c=null;try{c=JSON.parse(store.get('pb_sum')||'null')}catch(e){}
+  if(c&&c.orders){$('login').hidden=true;$('app').hidden=false;S=c;$('upd').textContent=c.at+' 기준 (새로 불러오는 중…)';render()}
+  call('adminSummary',{}).then(start,e=>/비밀번호/.test(e.message)?logout(''):c?toast(e.message):logout(''))}
 </script>
 </body>
 </html>
