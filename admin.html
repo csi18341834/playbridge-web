@@ -5,7 +5,7 @@
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<script>(function(){var B='0bfcd2567b';try{fetch('admin-version.json?t='+Date.now(),{cache:'no-store'}).then(function(r){return r.ok?r.json():null}).then(function(j){if(!j||!j.v||j.v===B)return;var u=new URL(location.href);if(u.searchParams.get('v')===j.v)return;u.searchParams.set('v',j.v);location.replace(u.toString())}).catch(function(){})}catch(e){}})();</script>
+<script>(function(){var B='93f064df7d';try{fetch('admin-version.json?t='+Date.now(),{cache:'no-store'}).then(function(r){return r.ok?r.json():null}).then(function(j){if(!j||!j.v||j.v===B)return;var u=new URL(location.href);if(u.searchParams.get('v')===j.v)return;u.searchParams.set('v',j.v);location.replace(u.toString())}).catch(function(){})}catch(e){}})();</script>
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <meta name="robots" content="noindex,nofollow">
@@ -197,6 +197,10 @@ textarea{width:100%;min-height:84px;border:2px solid var(--line);border-radius:1
 .b88c{background:var(--card);border:2px solid var(--line);border-radius:16px;padding:12px;margin-bottom:10px}.b88c .t{display:flex;gap:8px;align-items:flex-start;justify-content:space-between}.b88c .t b{font-size:16px;line-height:1.35;min-width:0;overflow-wrap:anywhere}
 .b88c .bt{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:8px}.b88c .bt .btn{min-height:46px;font-size:15px;padding:0 8px}.b88c .bt .w2{grid-column:1/-1}.b88c a.btn{display:flex;align-items:center;justify-content:center;text-decoration:none}
 .tag88{font-style:normal;font-size:12px;font-weight:900;padding:2px 8px;border-radius:99px;background:#eef;color:#4a3aa8;white-space:nowrap}.tag88.new{background:#fff1d6;color:#a35b00}.tag88.ok{background:#e3f6ec;color:var(--ok)}.lowp{color:#c0263e;font-weight:900}
+.tx .kv{font-size:14px}.txc{background:var(--card);border:2px solid var(--line);border-radius:16px;padding:12px;margin-bottom:10px}.txc.sel{border-color:var(--pk)}.txc .t{display:flex;gap:10px;align-items:flex-start}.txc .t input{width:24px;height:24px;flex:none;margin-top:2px}.txc .t b{font-size:16px;line-height:1.35;overflow-wrap:anywhere}
+.txb{display:inline-block;font-size:12px;font-weight:900;padding:2px 8px;border-radius:99px;margin:2px 4px 0 0;white-space:nowrap}.txb.w{background:#fff1d6;color:#a35b00}.txb.d{background:#e3f6ec;color:var(--ok)}.txb.m{background:#ffe3e3;color:#c0263e}.txb.u{background:#eee;color:#555}
+.txf{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:8px}.txf input{min-height:44px;border:2px solid var(--line);border-radius:10px;font-size:16px;padding:0 8px;min-width:0}.txf .w2{grid-column:1/-1}.txf .btn{min-height:44px}
+.txbar{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:8px}.txbar select,.txbar input{min-height:44px;border:2px solid var(--line);border-radius:10px;font-size:16px;padding:0 8px;background:#fff;min-width:0}.txact{display:grid;gap:8px}
 .shipset{display:grid;grid-template-columns:118px 1fr 58px;gap:6px;margin:4px 0 12px}.shipset select,.shipset input{min-height:40px;border:2px solid var(--line);border-radius:10px;font-size:14px;padding:0 6px;min-width:0;background:#fff}.shipset input[hidden]{display:block;visibility:hidden}.shipset .btn{min-height:40px;padding:0 6px;font-size:14px}
 </style>
 </head>
@@ -220,6 +224,7 @@ textarea{width:100%;min-height:84px;border:2px solid var(--line);border-radius:1
       <button type="button" data-tab="stk">재고·<br>입고알림</button>
       <button type="button" data-tab="sta">📊<br>간단 통계</button>
       <button type="button" data-tab="cpn">🎟<br>할인 코드</button>
+      <button type="button" data-tab="tax">🧾 세금<br>계산서</button>
     </div>
     <div class="bar" id="ordBar">
       <div class="tb2"><button class="btn w pk kmopen" type="button" id="kmOpen">＋ 카톡 주문 등록</button><button class="btn w kmopen" type="button" id="dpOpen">📸 입금내역 캡처 매칭</button><button class="btn w kmopen xlopen" type="button" id="xlOpen">📊 은행 입금내역(엑셀/CSV) 일괄 확인</button></div>
@@ -505,9 +510,9 @@ function render(){
   $('ordBar').hidden=TAB!=='ord';
   if(!SHOW_STATS&&TAB==='sta')TAB='ord';
   $('adminStats').hidden=!SHOW_STATS||TAB!=='ord';if(SHOW_STATS&&TAB==='ord')renderAdminStats(S.orders);
-  {const t=document.querySelector('[data-tab="sta"]');if(t)t.hidden=!SHOW_STATS;document.querySelector('.sub').style.gridTemplateColumns=`repeat(${SHOW_STATS?5:4},minmax(0,1fr))`}
+  {const t=document.querySelector('[data-tab="sta"]');if(t)t.hidden=!SHOW_STATS;document.querySelector('.sub').style.gridTemplateColumns=`repeat(${SHOW_STATS?6:5},minmax(0,1fr))`}
   document.querySelectorAll('[data-tab]').forEach(b=>b.classList.toggle('on',b.dataset.tab===TAB));
-  if(TAB==='ord')renderOrders();else if(TAB==='agg')renderAgg();else if(TAB==='sta')renderSta();else if(TAB==='cpn')renderCpn();else renderStk();
+  if(TAB==='ord')renderOrders();else if(TAB==='agg')renderAgg();else if(TAB==='sta')renderSta();else if(TAB==='cpn')renderCpn();else if(TAB==='tax')renderTax();else renderStk();
 }
 
 /* ---------- 카톡 주문 등록 ---------- */
@@ -942,10 +947,91 @@ async function renderBuy(force){
       toast(`창고입고완료${r.stock?` · 재고 ${r.stock.from} → ${r.stock.to}개`:''}${r.switched?' · ⚡ 바로발송 전환':''}${r.note?' · '+r.note:''}`);STK=null})()});
 }
 
+/* ---------- 🧾 세금계산서 월말 정산 (2026-11-24): 월별 대상·거래처별 월합계/건별·누락 정보 보완·홈택스 일괄발급 엑셀·발행완료 ---------- */
+let TAXD=null,TAXYM='',TAXF='발행대기',TAXV='grp',TAXDAY='';const TAXSEL=new Set();
+const TXK={bizNo:'사업자번호',name:'상호(법인명)',ceo:'대표자명',type:'업태',item:'종목',addr:'사업장주소',email:'계산서 이메일'};
+function kstNow(){return new Date(Date.now()+9*3600e3).toISOString()}
+function lastDay(ym){const [y,m]=ym.split('-').map(Number);return ym+'-'+String(new Date(Date.UTC(y,m,0)).getUTCDate()).padStart(2,'0')}
+function txGroups(L){const g={};L.forEach(x=>{const k=(x.info.bizNo||'').replace(/\D/g,'')||('s:'+x.shop);const a=g[k]||(g[k]={k,info:x.info,clientRow:x.clientRow,shop:x.shop,tel:x.tel,orders:[],supply:0,vat:0,total:0,missing:new Set()});a.orders.push(x);a.supply+=x.supply;a.vat+=x.vat;a.total+=x.total;x.missing.forEach(m=>a.missing.add(m))});return Object.values(g)}
+function txItems(O){const all=[];O.forEach(x=>x.items.forEach(i=>all.push(nm(i.n).main)));return all.length?all[0]+(all.length>1?` 외 ${all.length-1}건`:''):'상품'}
+function txForm(k,info,miss){return `<details class="txfd"${miss.size?' open':''}><summary class="lnk" style="text-decoration:none">✏️ 사업자정보 ${miss.size?'보완 (누락 '+[...miss].join('·')+')':'고치기'}</summary><div class="txf" data-tf="${esc(k)}">
+  ${Object.keys(TXK).map(f=>`<input data-f="${f}" class="${f==='addr'||f==='email'||f==='name'?'w2':''}" placeholder="${TXK[f]}" value="${esc(info[f]||'')}" ${f==='bizNo'?'inputmode="numeric"':f==='email'?'inputmode="email"':''} aria-label="${TXK[f]}">`).join('')}
+  <button type="button" class="btn w2" data-tsave="${esc(k)}">저장 (거래처_마스터·주문서에 함께)</button></div></details>`}
+function txRow(x){const sup=TAXD.supplier,b=x.info;return ['01',(x._day||'').replace(/-/g,''),(sup.bizNo||'').replace(/\D/g,''),'',sup.name,sup.ceo,sup.addr,sup.type,sup.item,sup.email,
+  (b.bizNo||'').replace(/\D/g,''),'',b.name,b.ceo,b.addr,b.type,b.item,b.email,'',x.supply,x.vat,x._memo||'',(x._day||'').slice(8,10),x._item,'','','',x.supply,x.vat,'',
+  '','','','','','','','','','','','','','','','','','','','','','','','',x.total,'','','','01']}
+const TXHEAD=['전자(세금)계산서 종류(01:일반)','작성일자','공급자 등록번호','공급자 종사업장번호','공급자 상호','공급자 성명','공급자 사업장주소','공급자 업태','공급자 종목','공급자 이메일','공급받는자 등록번호','공급받는자 종사업장번호','공급받는자 상호','공급받는자 성명','공급받는자 사업장주소','공급받는자 업태','공급받는자 종목','공급받는자 이메일1','공급받는자 이메일2','공급가액','세액','비고',
+  ...[1,2,3,4].flatMap(n=>['일자'+n,'품목'+n,'규격'+n,'수량'+n,'단가'+n,'공급가액'+n,'세액'+n,'품목비고'+n]),'현금','수표','어음','외상미수금','영수(01)/청구(02)'];
+async function renderTax(force){
+  const m=$('main');
+  if(!TAXYM)TAXYM=kstNow().slice(0,7);
+  if(!TAXD||force||TAXD.ym!==TAXYM){m.innerHTML='<div class="spin">불러오는 중…</div>';try{TAXD=await call('adminTaxMonth',{ym:TAXYM});TAXSEL.clear();TAXDAY=lastDay(TAXYM)}catch(e){m.innerHTML=`<div class="empty">${esc(e.message)}</div>`;return}}
+  if(TAB!=='tax')return;
+  const D=TAXD,L=D.list,wait=L.filter(x=>x.st==='발행대기'),done=L.filter(x=>x.st==='발행완료'),miss=wait.filter(x=>x.missing.length);
+  const F=L.filter(x=>TAXF==='전체'||(TAXF==='누락'?x.st==='발행대기'&&x.missing.length:x.st===TAXF));
+  const sum=k=>L.reduce((a,x)=>a+x[k],0),shops=new Set(L.map(x=>(x.info.bizNo||'').replace(/\D/g,'')||x.shop)).size,sup=D.supplier;
+  const supMiss=['type','item','email'].filter(k=>!sup[k]).map(k=>({type:'업태',item:'종목',email:'이메일'})[k]);
+  const kpi=(lab,val,sub,c)=>`<div class="kpi"${c?` style="border-color:${c}"`:''}><span>${lab}</span><b>${val}</b><small>${sub}</small></div>`;
+  const ord=x=>`<div class="txc${TAXSEL.has(x.po)?' sel':''}"><div class="t">${x.st==='발행대기'?`<input type="checkbox" data-tsel="${esc(x.po)}"${TAXSEL.has(x.po)?' checked':''} aria-label="선택">`:''}<div style="min-width:0;flex:1"><b>${esc(x.info.name||x.shop)}</b>
+      <div><span class="txb ${x.st==='발행완료'?'d':'w'}">${esc(x.st)}${x.at?' '+esc(x.at):''}</span>${x.paid?'':'<span class="txb m">입금 전 — 입금확인 후 발행 권장</span>'}${x.missing.map(k=>`<span class="txb m">${esc(k)} 누락</span>`).join('')}${x.fromMemo?'<span class="txb u">주문 메모에서 가져옴</span>':''}</div>
+      <span class="ps">${esc(x.po)} · ${esc(x.date)} · ${esc(x.stage)}</span>
+      <div class="kv"><span>공급가액 / 세액</span><span>${won(x.supply)} / ${won(x.vat)}</span></div><div class="kv t"><span>합계</span><span>${won(x.total)}</span></div>
+      <span class="ps">사업자번호 ${esc(x.info.bizNo||'없음')} · ${esc(x.info.email||'이메일 없음')}</span>
+      ${x.st==='발행대기'?`<button type="button" class="lnk" data-tst="${esc(x.po)}" data-to="미대상">발행대상에서 빼기</button>`:''}
+      ${x.st==='발행대기'?txForm('o:'+x.po,x.info,new Set(x.missing)):''}</div></div></div>`;
+  const grp=g=>{const W=g.orders.filter(x=>x.st==='발행대기'),all=W.length&&W.every(x=>TAXSEL.has(x.po)),unpaid=g.orders.some(x=>!x.paid);
+    return `<div class="txc${all?' sel':''}"><div class="t">${W.length?`<input type="checkbox" data-gsel="${esc(g.k)}"${all?' checked':''} aria-label="거래처 선택">`:''}<div style="min-width:0;flex:1"><b>${esc(g.info.name||g.shop)}</b>
+      <div>${W.length?`<span class="txb w">발행대기 ${W.length}건</span>`:''}${g.orders.length-W.length?`<span class="txb d">발행완료 ${g.orders.length-W.length}건</span>`:''}${unpaid?'<span class="txb m">입금 전 주문 포함</span>':''}${[...g.missing].map(k=>`<span class="txb m">${esc(k)} 누락</span>`).join('')}</div>
+      <span class="ps">사업자번호 ${esc(g.info.bizNo||'없음')} · ${esc(g.info.email||'이메일 없음')}</span>
+      <div class="kv"><span>공급가액 합계</span><span>${won(g.supply)}</span></div><div class="kv"><span>부가세 합계</span><span>${won(g.vat)}</span></div><div class="kv t"><span>합계</span><span>${won(g.total)}</span></div>
+      <span class="ps">품목: ${esc(txItems(g.orders))}</span>
+      <details><summary class="lnk" style="text-decoration:none">포함된 주문 ${g.orders.length}건 보기</summary><ul class="hist">${g.orders.map(x=>`<li>${esc(x.po)} · ${esc(x.date)} · ${won(x.total)} · ${esc(x.st)}${x.paid?'':' · 입금 전'}</li>`).join('')}</ul></details>
+      ${W.length?txForm('g:'+g.k,g.info,g.missing):''}</div></div></div>`};
+  m.innerHTML=`<div class="tx"><div class="txbar"><select id="txYm" aria-label="연-월">${D.months.map(y=>`<option${y===TAXYM?' selected':''}>${y}</option>`).join('')}</select>
+      <div class="seg" style="margin:0"><button type="button" data-tv="grp" class="${TAXV==='grp'?'on':''}">거래처별 월합계</button><button type="button" data-tv="det" class="${TAXV==='det'?'on':''}">주문 건별</button></div></div>
+    <div class="kpis">${kpi('발행대상',L.length+'건',`거래처 ${shops}곳 · 대기 ${wait.length} · 완료 ${done.length}`)}${kpi('⚠️ 사업자정보 누락',miss.length+'건','발행대기 중',miss.length?'#c0263e':'')}${kpi('공급가액 / 세액',won(sum('supply')),'세액 '+won(sum('vat')))}${kpi('합계금액',won(sum('total')),'VAT 포함 · 입금액 기준')}</div>
+    ${supMiss.length?`<div class="req" style="margin:0 0 10px">설정 탭 공급자_${supMiss.join('·')}을(를) 채워 주세요 (홈택스 양식의 공급자 칸)</div>`:''}
+    <div class="chips" style="margin-bottom:8px">${['발행대기','발행완료','누락','전체'].map(t=>`<button type="button" class="chip${TAXF===t?' on':''}" data-tf2="${t}">${t==='누락'?'정보누락 주의':t==='발행대기'?'발행대기(미발행)':t} <b>${t==='전체'?L.length:t==='누락'?miss.length:L.filter(x=>x.st===t).length}</b></button>`).join('')}</div>
+    ${F.length?(TAXV==='grp'?txGroups(F).map(grp).join(''):F.map(ord).join('')):`<div class="empty">${esc(TAXYM)} ${TAXF==='전체'?'세금계산서 대상':TAXF} 건이 없습니다</div>`}
+    <div class="sec txact"><h3>홈택스 일괄발급 <span class="ps" style="display:inline">선택 ${TAXSEL.size}건</span></h3>
+      <label class="ps">작성일자 (거래처별 월합계에 적용, 건별은 주문일)<input type="date" id="txDay" value="${esc(TAXDAY)}" style="display:block;width:100%;min-height:44px;border:2px solid var(--line);border-radius:10px;font-size:16px;padding:0 8px;margin-top:4px"></label>
+      <button type="button" class="btn w ghost" id="txAll">발행대기 ${wait.length}건 모두 선택</button>
+      <button type="button" class="btn w" id="txXl">📥 홈택스 일괄발급 양식 다운로드 (${TXV_LABEL()})</button>
+      <button type="button" class="btn w pk" id="txDone">✅ 선택 건 발행완료 일괄 체크</button>
+      <p class="ps">금액은 입금액(할인·배송비 반영) 기준: 공급가액 = 입금액 ÷ 1.1, 세액 = 나머지. 엑셀 열은 홈택스 일괄발급 양식 순서로 만들었어요. 처음 쓸 땐 홈택스에서 받은 최신 양식과 머리글을 한 번 비교한 뒤 붙여 넣어 올려 주세요.</p></div>
+    ${D.others.length?`<details class="sec"><summary>계산서 요청 없는 주문 ${D.others.length}건 (필요하면 발행대상에 추가)</summary>${D.others.map(x=>`<div class="stk"><span>${esc(x.shop)}<span class="ps">${esc(x.po)} · ${esc(x.date)} · ${won(x.total)}</span></span><button type="button" class="lnk" data-tst="${esc(x.po)}" data-to="발행대기">발행대상에 추가</button></div>`).join('')}</details>`:''}</div>`;
+  $('txYm').onchange=e=>{TAXYM=e.target.value;renderTax()};
+  m.querySelectorAll('[data-tv]').forEach(b=>b.onclick=()=>{TAXV=b.dataset.tv;renderTax()});
+  m.querySelectorAll('[data-tf2]').forEach(b=>b.onclick=()=>{TAXF=b.dataset.tf2;renderTax()});
+  $('txDay').onchange=e=>{TAXDAY=e.target.value};
+  m.querySelectorAll('[data-tsel]').forEach(c=>c.onchange=()=>{c.checked?TAXSEL.add(c.dataset.tsel):TAXSEL.delete(c.dataset.tsel);renderTax()});
+  m.querySelectorAll('[data-gsel]').forEach(c=>c.onchange=()=>{const g=txGroups(F).find(x=>x.k===c.dataset.gsel);g.orders.filter(x=>x.st==='발행대기').forEach(x=>c.checked?TAXSEL.add(x.po):TAXSEL.delete(x.po));renderTax()});
+  $('txAll').onclick=()=>{wait.forEach(x=>TAXSEL.add(x.po));renderTax()};
+  m.querySelectorAll('[data-tst]').forEach(b=>b.onclick=async()=>{b.disabled=true;try{await call('adminTaxSetStatus',{po:b.dataset.tst,st:b.dataset.to});toast(b.dataset.to==='발행대기'?'발행대상에 추가했습니다':'발행대상에서 뺐습니다');renderTax(true)}catch(e){toast(e.message);b.disabled=false}});
+  m.querySelectorAll('[data-tsave]').forEach(b=>b.onclick=async()=>{const k=b.dataset.tsave,box=m.querySelector(`[data-tf="${k}"]`),v={};box.querySelectorAll('[data-f]').forEach(i=>v[i.dataset.f]=i.value.trim());
+    const O=k.startsWith('o:')?L.filter(x=>x.po===k.slice(2)):txGroups(L).find(g=>'g:'+g.k===k).orders;
+    b.disabled=true;try{await call('adminTaxSaveClient',Object.assign(v,{clientRow:O[0].clientRow,shop:O[0].shop,tel:O[0].tel,pos:O.map(x=>x.po)}));toast('사업자정보를 저장했습니다 (거래처_마스터·주문서)');renderTax(true)}catch(e){toast(e.message);b.disabled=false}});
+  $('txXl').onclick=async()=>{const S=L.filter(x=>TAXSEL.has(x.po)&&x.st==='발행대기');if(!S.length){toast('발행대기 건을 먼저 선택해 주세요');return}
+    const bad=S.filter(x=>x.missing.length);if(bad.length&&!confirm(`사업자정보가 빠진 주문이 ${bad.length}건 있어요. 홈택스에서 오류가 날 수 있어요. 그래도 내려받을까요?`))return;
+    if(S.some(x=>!x.paid)&&!confirm('입금 전 주문이 포함돼 있어요. 그래도 내려받을까요?'))return;
+    const rows=TAXV==='grp'?txGroups(S).map(g=>Object.assign({},g,{info:g.info,_day:TAXDAY,_item:txItems(g.orders).slice(0,100),_memo:g.orders.map(x=>x.po).join(',').slice(0,150)})).map(txRow)
+      :S.map(x=>txRow(Object.assign({},x,{_day:x.date,_item:txItems([x]).slice(0,100),_memo:x.po})));
+    const name=`홈택스_세금계산서_일괄발급_${TAXYM}_${TAXV==='grp'?'거래처별':'건별'}`;
+    try{await xlLib();const wb=XLSX.utils.book_new();XLSX.utils.book_append_sheet(wb,XLSX.utils.aoa_to_sheet([TXHEAD,...rows]),'일괄발급');
+      XLSX.utils.book_append_sheet(wb,XLSX.utils.aoa_to_sheet([['안내'],['열 순서는 홈택스 전자세금계산서 일괄발급 엑셀 양식 기준입니다.'],['홈택스에서 받은 최신 양식과 머리글이 다르면, 이 표의 값을 양식에 복사해 붙여 넣어 올려 주세요.'],['등록번호는 숫자만, 작성일자는 YYYYMMDD, 영수(01)로 적었습니다(선입금).']]),'안내');
+      XLSX.writeFile(wb,name+'.xlsx');toast(`${rows.length}줄 엑셀을 내려받았습니다`)}
+    catch(e){const csv='﻿'+[TXHEAD,...rows].map(r=>r.map(v=>`"${String(v==null?'':v).replace(/"/g,'""')}"`).join(',')).join('\r\n');const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv'}));a.download=name+'.csv';a.click();toast('엑셀 도구를 못 불러와 CSV로 내려받았습니다')}};
+  $('txDone').onclick=async e=>{const P=[...TAXSEL].filter(po=>L.some(x=>x.po===po&&x.st==='발행대기'));if(!P.length){toast('발행대기 건을 먼저 선택해 주세요');return}
+    if(!confirm(`홈택스에서 발행을 마쳤나요?\n선택한 ${P.length}건을 '발행완료'(발행일 ${TAXDAY})로 기록합니다. 기록한 건은 다시 발행대상에 안 나옵니다.`))return;
+    const no=P.length<=3?(prompt('국세청 승인번호 (선택, 비워도 됩니다)')||''):'';const b=e.target;b.disabled=true;
+    try{const r=await call('adminTaxMarkIssued',{pos:P,date:TAXDAY,no});toast(`발행완료 ${r.done.length}건 기록${r.skipped.length?` · 이미 발행완료 ${r.skipped.length}건 건너뜀`:''}`);renderTax(true)}catch(x){toast(x.message);b.disabled=false}};
+}
+function TXV_LABEL(){return TAXV==='grp'?'거래처별 월합계':'주문 건별'}
+
 /* ---------- 이벤트 ---------- */
 $('lGo').addEventListener('click',login);$('pin').addEventListener('keydown',e=>{if(e.key==='Enter')login()});
 /* '나가기' 버튼 → '쇼핑몰'(주문 사이트로 이동, 2026-11-24 요청자). 로그인은 이 기기에 30일 유지 */
-$('reload').addEventListener('click',()=>{STK=null;BUY=null;load()});
+$('reload').addEventListener('click',()=>{STK=null;BUY=null;TAXD=null;load()});
 $('pX').addEventListener('click',closePane);
 $('kmOpen').addEventListener('click',kmPane);$('dpOpen').addEventListener('click',dpPane);$('xlOpen').addEventListener('click',xlPane);$('pane').addEventListener('click',e=>{if(e.target===$('pane'))closePane()});
 document.addEventListener('keydown',e=>{if(e.key==='Escape')closePane()});
