@@ -109,6 +109,8 @@ textarea{width:100%;min-height:84px;border:2px solid var(--line);border-radius:1
 .items li{display:flex;gap:8px;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--line);font-size:15px}
 .items li:last-child{border-bottom:0}
 .items li b{flex:none;white-space:nowrap}
+.items li>span{flex:1;min-width:0}.items .pic{flex:none;width:56px;height:56px;border-radius:10px;border:1px solid var(--line);background:#f3f3f3 center/cover no-repeat;display:block;padding:0;cursor:zoom-in}
+.items.pick .pic{width:48px;height:48px}
 .op{display:block;color:var(--pk);font-weight:700;font-size:14px}
 .ps{display:block;color:var(--sub);font-size:13px}
 .kv{display:flex;justify-content:space-between;gap:8px;font-size:15px;padding:2px 0}
@@ -199,7 +201,7 @@ textarea{width:100%;min-height:84px;border:2px solid var(--line);border-radius:1
 
 <div id="app" hidden>
   <header>
-    <div class="top"><h1>주문 관리 <small id="upd"></small></h1><button class="ib" id="reload" type="button">새로고침</button><button class="ib" id="out" type="button">나가기</button></div>
+    <div class="top"><h1>주문 관리 <small id="upd"></small></h1><button class="ib" id="reload" type="button">새로고침</button><a class="ib" id="shop" href="https://playbridge.io.kr/" style="text-decoration:none;color:var(--ink);display:inline-flex;align-items:center">쇼핑몰</a></div>
     <div class="sub" role="tablist">
       <button type="button" data-tab="ord" class="on">주문<br>진행관리</button>
       <button type="button" data-tab="agg">1688발주·<br>품목합계</button>
@@ -260,7 +262,11 @@ async function login(){
 }
 function logout(msg){PIN='';store.set('pb_admin',null);keep.set('pb_admin',null);keep.set('pb_sum',null);$('app').hidden=true;$('login').hidden=false;closePane();$('pin').value='';if(msg)$('lErr').textContent=msg}
 function start(r){$('login').hidden=true;$('app').hidden=false;$('weak').hidden=!(r&&r.weakPin);if(r&&r.orders)show(r);else load()}
-function show(r){S=r;$('upd').textContent=r.at+' 기준';render();if(openPo)detail(openPo);keep.set('pb_sum',r)}
+/* 품목 사진 (2026-11-24 요청자): 서버가 준 t.pic, 단계 변경 후 받은 주문엔 없을 수 있어 코드+품명으로 기억해 둔 것 사용. 누르면 큰 사진 새 창 */
+const PICS={};
+function picOf(t){return t.pic||PICS[t.c+'|'+t.n]||''}
+function picH(t){const u=picOf(t);return u?`<a class="pic" href="${esc(u.replace(/=w\d+$/,'=w1200'))}" target="_blank" rel="noopener" style="background-image:url('${esc(u)}')" aria-label="사진 크게 보기"></a>`:'<span class="pic"></span>'}
+function show(r){S=r;(r.orders||[]).forEach(o=>o.items.forEach(t=>{if(t.pic)PICS[t.c+'|'+t.n]=t.pic}));$('upd').textContent=r.at+' 기준';render();if(openPo)detail(openPo);keep.set('pb_sum',r)}
 
 /* ---------- 데이터 ---------- */
 async function load(){
@@ -355,7 +361,7 @@ function detail(po,focusInv){
     ${o.invoice?`<button class="btn w ghost" type="button" id="kakao">대표님 발송안내 카톡 멘트 복사</button>`:''}</div>
     <label class="chk"><input type="checkbox" id="part" ${o.partial?'checked':''}> 부분 발송 (미발송 잔여 품목 있음)</label>
   </div>
-  <div class="sec"><h3>품목 ${o.items.length}종 · ${o.packs}팩</h3><ul class="items">${o.items.map(t=>{const x=nm(t.n);return `<li><span>${esc(x.main)}${itemTag(t)}${x.op?`<span class="op">${esc(x.op)}</span>`:''}${x.pa?`<span class="ps">${esc(x.pa)} · ${esc(t.unit)}</span>`:''}</span><b>${t.q}팩<br><small style="font-weight:700">${won(t.sum)}</small></b></li>`}).join('')}</ul>
+  <div class="sec"><h3>품목 ${o.items.length}종 · ${o.packs}팩</h3><ul class="items">${o.items.map(t=>{const x=nm(t.n);return `<li>${picH(t)}<span>${esc(x.main)}${itemTag(t)}${x.op?`<span class="op">${esc(x.op)}</span>`:''}${x.pa?`<span class="ps">${esc(x.pa)} · ${esc(t.unit)}</span>`:''}</span><b>${t.q}팩<br><small style="font-weight:700">${won(t.sum)}</small></b></li>`}).join('')}</ul>
     <div class="kv"><span>상품</span><span>${won(o.sub)}</span></div>${o.depName||o.depAt?`<div class="kv"><span>입금확인</span><span>${esc(o.depName||'')}${o.depAt?' · '+esc(o.depAt):''}</span></div>`:''}${o.pgType==='PG_CARD'?`<div class="kv"><span>결제수단</span><span>카드PG · ${esc(o.pgStatus||'')}${o.receipt?` · <a href="${esc(o.receipt)}" target="_blank" rel="noopener">매출전표</a>`:''}</span></div>`:''}${o.disc?`<div class="kv" style="color:#c00"><span>할인 ${esc(o.coupon)}</span><span>-${won(o.disc)}</span></div>`:''}<div class="kv"><span>배송비</span><span>${o.ship?won(o.ship):'무료'}</span></div><div class="kv t"><span>합계</span><span>${won(o.total)}</span></div></div>
   ${(o.history||[]).length?`<div class="sec"><h3>변경 이력</h3><ul class="hist">${o.history.slice().reverse().map(h=>`<li>${esc(h)}</li>`).join('')}</ul></div>`:''}
   <div class="sec"><h3>배송지 · 연락처</h3><div class="addr">${esc(o.addr||'-')}</div><div class="addr" style="margin-top:4px;font-weight:700">${esc(o.tel)}</div>
@@ -418,7 +424,7 @@ function renderAgg(){
     if($('aggCp'))$('aggCp').addEventListener('click',()=>copy(['[1688 발주 합계]',...L.map(a=>`${a.c} ${a.name}${a.op?' ['+a.op+']':''} : ${a.q}팩 (${a.q*a.pack}개)`),`합계 ${tq}팩 / ${tp}개`].join('\n'),'합계 목록을 복사했습니다'));
   }else{
     h+=pick.length?pick.map(o=>`<div class="sec"><h3>${esc(o.shop)} <small style="color:var(--sub)">(${esc(o.who)}) · ${esc(o.po)}</small> ${shipB(o)}</h3><div class="addr" style="margin-bottom:6px">${esc(o.addr)}</div>
-      <ul class="items pick">${o.items.map((t,k)=>{const x=nm(t.n);return `<li><label><input type="checkbox" data-pk="${esc(o.po)}-${k}"><span>${esc(x.main)}${itemTag(t)}${x.op?`<span class="op">${esc(x.op)}</span>`:''}</span></label><b>${t.q}팩</b></li>`}).join('')}</ul>
+      <ul class="items pick">${o.items.map((t,k)=>{const x=nm(t.n);return `<li>${picH(t)}<label style="flex:1;min-width:0"><input type="checkbox" data-pk="${esc(o.po)}-${k}"><span>${esc(x.main)}${itemTag(t)}${x.op?`<span class="op">${esc(x.op)}</span>`:''}</span></label><b>${t.q}팩</b></li>`}).join('')}</ul>
       <button class="btn w" type="button" data-inv="${esc(o.po)}" style="margin-top:8px">국내 송장 입력</button></div>`).join(''):`<div class="empty">한국도착(통관) 주문이 없습니다</div>`;
     $('main').innerHTML=h;
     $('main').querySelectorAll('[data-pk]').forEach(c=>{const k='pk_'+c.dataset.pk;c.checked=store.get(k)==='1';c.addEventListener('change',()=>store.set(k,c.checked?'1':null))});
@@ -832,7 +838,7 @@ async function renderCpn(force){
 
 /* ---------- 이벤트 ---------- */
 $('lGo').addEventListener('click',login);$('pin').addEventListener('keydown',e=>{if(e.key==='Enter')login()});
-$('out').addEventListener('click',()=>logout(''));
+/* '나가기' 버튼 → '쇼핑몰'(주문 사이트로 이동, 2026-11-24 요청자). 로그인은 이 기기에 30일 유지 */
 $('reload').addEventListener('click',()=>{STK=null;load()});
 $('pX').addEventListener('click',closePane);
 $('kmOpen').addEventListener('click',kmPane);$('dpOpen').addEventListener('click',dpPane);$('xlOpen').addEventListener('click',xlPane);$('pane').addEventListener('click',e=>{if(e.target===$('pane'))closePane()});
