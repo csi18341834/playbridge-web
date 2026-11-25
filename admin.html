@@ -5,7 +5,7 @@
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<script>(function(){var B='4dec058fef';try{fetch('admin-version.json?t='+Date.now(),{cache:'no-store'}).then(function(r){return r.ok?r.json():null}).then(function(j){if(!j||!j.v||j.v===B)return;var u=new URL(location.href);if(u.searchParams.get('v')===j.v)return;u.searchParams.set('v',j.v);location.replace(u.toString())}).catch(function(){})}catch(e){}})();</script>
+<script>(function(){var B='16aa92b751';try{fetch('admin-version.json?t='+Date.now(),{cache:'no-store'}).then(function(r){return r.ok?r.json():null}).then(function(j){if(!j||!j.v||j.v===B)return;var u=new URL(location.href);if(u.searchParams.get('v')===j.v)return;u.searchParams.set('v',j.v);location.replace(u.toString())}).catch(function(){})}catch(e){}})();</script>
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <meta name="robots" content="noindex,nofollow">
@@ -38,6 +38,9 @@ header{position:sticky;top:0;z-index:20;background:var(--y);padding:10px 16px 0;
 .top h1{flex:1;margin:0;font-size:18px;font-weight:900;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .top small{font-size:12px;font-weight:700;color:var(--sub)}
 .ib{min-height:40px;padding:0 12px;border:2px solid var(--ink);border-radius:12px;background:#fff;font-size:14px;font-weight:900;white-space:nowrap}
+@media(max-width:430px){.top{gap:5px}.top .ib{min-height:38px;padding:6px 9px;font-size:13px}.top h1{font-size:16px}.top h1 small{display:none}}
+.mcq{display:flex;gap:6px;flex-wrap:wrap;margin-top:6px}.mcq button{min-height:36px;padding:0 12px;border:2px solid var(--line);border-radius:999px;background:#fff;font-weight:800;font-size:14px}.mcq button.on{background:var(--ink);color:#fff;border-color:var(--ink)}
+.mcl{display:block;margin-top:12px;font-weight:900;font-size:15px}.mcres{margin-top:14px;padding:12px;border-radius:14px;background:#fff;border:2px solid var(--line)}.mcres .kv{font-size:15px;gap:8px}.mcres .kv>span:first-child{white-space:nowrap}.mcres .kv>span:last-child{text-align:right}.mcbadge{margin-top:10px;padding:10px;border-radius:12px;font-weight:900;text-align:center;font-size:16px}.mcbadge.ok{background:#e3f6ec;color:#0b7a4b}.mcbadge.mid{background:#fff3c4;color:#8a6100}.mcbadge.bad{background:#ffe3e3;color:#c00}
 .sub{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:4px;margin-top:10px}
 .sub button{min-height:44px;border:0;border-radius:12px 12px 0 0;background:rgba(255,255,255,.55);font-size:14px;font-weight:900;line-height:1.2;padding:4px 2px}
 .sub button.on{background:var(--bg)}
@@ -230,7 +233,7 @@ textarea{width:100%;min-height:84px;border:2px solid var(--line);border-radius:1
 
 <div id="app" hidden>
   <header>
-    <div class="top"><h1>주문 관리 <small id="upd"></small></h1><button class="ib" id="cpnBtn" type="button" hidden>🎟 할인 코드</button><button class="ib" id="reload" type="button">새로고침</button><a class="ib" id="shop" href="https://playbridge.io.kr/" style="text-decoration:none;color:var(--ink);display:inline-flex;align-items:center">쇼핑몰</a></div>
+    <div class="top"><h1>주문 관리 <small id="upd"></small></h1><button class="ib" id="cpnBtn" type="button" hidden>🎟 할인 코드</button><button class="ib" id="mcBtn" type="button">💰 마진 계산</button><button class="ib" id="reload" type="button">새로고침</button><a class="ib" id="shop" href="https://playbridge.io.kr/" style="text-decoration:none;color:var(--ink);display:inline-flex;align-items:center">쇼핑몰</a></div>
     <div class="sub" role="tablist">
       <button type="button" data-tab="ord" class="on">주문<br>진행관리</button>
       <button type="button" data-tab="agg">1688<br>발주합계</button>
@@ -506,6 +509,49 @@ document.addEventListener('click',async e=>{
     t.textContent='만드는 중…';const b=await oiDraw(o,true);box.innerHTML=`<img alt="발주서 미리보기" src="${URL.createObjectURL(b)}">`;t.textContent='👁 미리보기 닫기'}
   else if(t.dataset.porep){t.disabled=true;try{const r=await call('adminReplyMessage',{po:o.po});copy(r.replyMessage,'입금 안내문을 복사했습니다. 카톡에 붙여넣어 주세요')}catch(x){toast(x.message)}finally{t.disabled=false}}
 });
+/* 💰 마진 계산 (2026-11-25 요청자): 1688 위안 → 국내 원가(위안 × 계수) · 제안 공급가(개당 VAT별도) → 개당/팩 마진·마진율·판정 + 카톡 양식 복사. 서버 없음, 입력값은 이 기기에 기억 */
+const MC={name:'',yuan:'',pack:12,k:250,price:''};
+try{Object.assign(MC,JSON.parse(localStorage.getItem('pb_mc')||'{}'))}catch(e){}
+function mcOpen(){
+  openPo='';$('pT').innerHTML='💰 마진 계산 <small style="font-size:13px;color:var(--sub)">1688 매입가 → 원가·마진</small>';
+  const K=[[250,'일반 소품·키링 ×250'],[280,'부피큼·무거움 ×280'],[230,'초경량·소형 ×230']];
+  $('pB').innerHTML=`<div class="sec">
+    <label class="mcl" for="mcName">상품명 (선택)</label><input class="f" id="mcName" type="text" placeholder="카톡 공유용" value="${esc(MC.name)}" autocomplete="off">
+    <label class="mcl" for="mcYuan">1688 매입가 (위안/개)</label><input class="f" id="mcYuan" type="text" inputmode="decimal" placeholder="예: 17.5" value="${esc(MC.yuan)}" autocomplete="off">
+    <label class="mcl" for="mcPack">1팩 구성 개수 (개입)</label><input class="f" id="mcPack" type="text" inputmode="numeric" value="${esc(MC.pack)}" autocomplete="off">
+    <div class="mcq" id="mcPackQ">${[1,4,10,12].map(n=>`<button type="button" data-mcp="${n}">${n}개</button>`).join('')}</div>
+    <span class="mcl">물류·환율 원가 기준</span><div class="mcq" id="mcK">${K.map(([k,l])=>`<button type="button" data-mck="${k}">${l}</button>`).join('')}</div>
+    <label class="mcl" for="mcPrice">제안 공급가 (개당, 원 / VAT별도)</label><input class="f" id="mcPrice" type="text" inputmode="numeric" placeholder="예: 6500" value="${esc(MC.price)}" autocomplete="off">
+    <div class="mcq"><button type="button" data-mcr="370">35% 마진가 적용 (×370)</button><button type="button" data-mcr="400">38% 마진가 적용 (×400)</button></div>
+    <div class="mcres" id="mcRes"></div>
+    <button class="btn w pk" type="button" id="mcCp" style="margin-top:12px">📋 카톡 단가체크 양식 복사</button>
+    <p class="ps" style="margin-top:8px">원가 = 위안 × 기준(250원 = 1위안 200원 × 부대비용 1.25). 마진율 = (공급가 − 원가) ÷ 공급가, VAT·카드수수료 제외.</p></div>`;
+  openPane();
+  const B=$('pB'),num=v=>parseFloat(String(v).replace(/[^0-9.]/g,''))||0;
+  const save=()=>{try{localStorage.setItem('pb_mc',JSON.stringify(MC))}catch(e){}};
+  const calc=()=>{
+    MC.name=$('mcName').value.trim();MC.yuan=$('mcYuan').value.trim();MC.pack=$('mcPack').value.trim();MC.price=$('mcPrice').value.trim();save();
+    B.querySelectorAll('[data-mcp]').forEach(b=>b.classList.toggle('on',String(num(MC.pack))===b.dataset.mcp));
+    B.querySelectorAll('[data-mck]').forEach(b=>b.classList.toggle('on',+b.dataset.mck===+MC.k));
+    const y=num(MC.yuan),pk=Math.max(1,Math.round(num(MC.pack))||1),pr=Math.round(num(MC.price)),cost=Math.round(y*MC.k),m=pr-cost,rate=pr?m/pr*100:0;
+    const R={y,pk,pr,cost,packCost:cost*pk,packPr:pr*pk,packInc:Math.round(pr*pk*1.1),m,packM:m*pk,rate};MC._r=R;
+    if(!y||!pr){$('mcRes').innerHTML=`<div class="ps">매입가(위안)와 제안 공급가를 넣으면 바로 계산돼요${y?` · 예상 원가 개당 ${won(cost)}`:''}</div>`;return}
+    const st=rate>=30?['ok','✅ 적정 마진 (출시 추천)']:rate>=15?['mid','⚠️ 저마진 주의 (미끼상품용)']:['bad','🚨 역마진 위험! (단가 상향 필수)'];
+    const sg=n=>(n>=0?'+':'−')+won(Math.abs(n));
+    $('mcRes').innerHTML=`<div class="kv"><span>예상 국내 원가</span><span>개당 <b>${won(cost)}</b> · 1팩 ${won(R.packCost)}</span></div>
+      <div class="kv"><span>제안 1팩 공급가 <small>(VAT별도)</small></span><span><b>${won(R.packPr)}</b></span></div>
+      <div class="kv"><span>VAT 포함 입금액</span><span>${won(R.packInc)}</span></div>
+      <div class="kv"><span>예상 마진</span><span>개당 <b>${sg(m)}</b> · 1팩 <b>${sg(R.packM)}</b></span></div>
+      <div class="kv t"><span>마진율</span><span>${rate.toFixed(1)}%</span></div><div class="mcbadge ${st[0]}">${st[1]}</div>`;
+  };
+  ['mcName','mcYuan','mcPack','mcPrice'].forEach(id=>$(id).addEventListener('input',calc));
+  B.querySelectorAll('[data-mcp]').forEach(b=>b.addEventListener('click',()=>{$('mcPack').value=b.dataset.mcp;calc()}));
+  B.querySelectorAll('[data-mck]').forEach(b=>b.addEventListener('click',()=>{MC.k=+b.dataset.mck;calc()}));
+  B.querySelectorAll('[data-mcr]').forEach(b=>b.addEventListener('click',()=>{const y=num($('mcYuan').value);if(!y){toast('먼저 1688 매입가(위안)를 넣어 주세요');$('mcYuan').focus();return}$('mcPrice').value=Math.round(y*(+b.dataset.mcr)/100)*100;calc()}));
+  $('mcCp').addEventListener('click',()=>{const R=MC._r||{};if(!R.y||!R.pr){toast('매입가와 공급가를 먼저 넣어 주세요');return}
+    copy(['[단가 체크 요청]',`• 상품명: ${MC.name||'미입력'}`,`• 현지 매입가: ${R.y} 위안 / 개`,`• 1팩 구성: ${R.pk}개입`,`• 예상 원가: 개당 ${won(R.cost)} / 1팩 ${won(R.packCost)}`,`• 제안 공급가(VAT별도): 개당 ${won(R.pr)} / 1팩 ${won(R.packPr)}`,`• 예상 마진: 팩당 ${won(R.packM)} (마진율 ${R.rate.toFixed(1)}%)`].join('\n'),'단가 체크 양식이 복사되었습니다!')});
+  calc();
+}
 function detail(po,focusInv){
   const o=S.orders.find(x=>x.po===po);if(!o)return closePane();
   openPo=po;const i=sIdx(o.status);let cour=o.courier||'';
@@ -1216,6 +1262,7 @@ function TXV_LABEL(){return TAXV==='grp'?'거래처별 월합계':'주문 건별
 $('lGo').addEventListener('click',login);$('pin').addEventListener('keydown',e=>{if(e.key==='Enter')login()});
 /* '나가기' 버튼 → '쇼핑몰'(주문 사이트로 이동, 2026-11-24 요청자). 로그인은 이 기기에 30일 유지 */
 $('reload').addEventListener('click',()=>load());
+$('mcBtn').addEventListener('click',()=>mcOpen());
 /* 다른 기기에서 바꾼 체크(카톡방 개설 등)도 보이게: 화면으로 돌아오면 30초 넘었을 때 주문 다시 받기 (2026-11-25) */
 let LASTVIS=Date.now();document.addEventListener('visibilitychange',()=>{if(document.hidden){LASTVIS=Date.now();return}if(PIN&&!$('app').hidden&&Date.now()-LASTVIS>30000&&!document.querySelector('#pane:not([hidden]) textarea:focus'))load()});
 $('cpnBtn').hidden=!SHOW_CPN_BTN;$('cpnBtn').addEventListener('click',()=>{TAB='cpn';scrollTo(0,0);render()});   /* 할인 코드 = 위쪽 버튼 (지금 숨김) */   /* 탭 데이터는 prefetch가 뒤에서 새로 받음 */
