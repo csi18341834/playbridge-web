@@ -5,7 +5,7 @@
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<script>(function(){var B='1eddf5e23a';try{fetch('admin-version.json?t='+Date.now(),{cache:'no-store'}).then(function(r){return r.ok?r.json():null}).then(function(j){if(!j||!j.v||j.v===B)return;var u=new URL(location.href);if(u.searchParams.get('v')===j.v)return;u.searchParams.set('v',j.v);location.replace(u.toString())}).catch(function(){})}catch(e){}})();</script>
+<script>(function(){var B='7e03a874cd';try{fetch('admin-version.json?t='+Date.now(),{cache:'no-store'}).then(function(r){return r.ok?r.json():null}).then(function(j){if(!j||!j.v||j.v===B)return;var u=new URL(location.href);if(u.searchParams.get('v')===j.v)return;u.searchParams.set('v',j.v);location.replace(u.toString())}).catch(function(){})}catch(e){}})();</script>
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <meta name="robots" content="noindex,nofollow">
@@ -73,6 +73,9 @@ main{padding:10px 16px}
 .next button{flex:1;min-height:46px;border:0;border-radius:12px;font-size:16px;font-weight:900;color:#fff}
 .n0{background:var(--s1)}.n1{background:var(--s2)}.n2{background:var(--s3)}.n3{background:var(--s4)}.n4{background:var(--pk)}
 .next button:disabled{opacity:.55}
+.next .nmain{flex:6;min-width:0}
+.next button.ntc{flex:4;min-width:0;padding:0 6px;background:#fff;color:#5d5872;border:1.5px solid #d9d2c3;font-size:15px;font-weight:800;white-space:nowrap}   /* 안내완료 토글 (2026-11-25): 미체크는 흐리게 → 오터치 방지 */
+.next button.ntc.on{background:#e3f6ec;color:#0b7a4b;border-color:#0b7a4b;font-weight:900}
 .flags{display:flex;gap:4px;flex-wrap:wrap;margin-bottom:4px}
 .fl{padding:1px 8px;border-radius:8px;font-size:12px;font-weight:900;white-space:nowrap}
 .fl.red{background:#d92d20;color:#fff}.fl.warn{background:#fff1e6;color:#c2410c;border:1.5px solid #f59f6b}
@@ -322,7 +325,9 @@ function unpaidDays(o){return o.status===STAGES[0]&&o.ts?kday(Date.now())-kday(o
 function card(o){
   const i=sIdx(o.status),first=nm((o.items[0]||{}).n),dn=unpaidDays(o);
   const flags=shipB(o)+(o.card?`<span class="fl card">💳 법인카드 요청${o.payLink?' · 링크 저장됨':''}</span>`:'')+(o.route==='카톡'?'<span class="fl kk">💬 카톡</span>':'')+(o.coupon?`<span class="fl cp">🎟 ${esc(o.coupon)}</span>`:'')+(o.pgType==='PG_CARD'?`<span class="fl card">카드PG · ${esc(o.pgStatus||'')}</span>`:'')+(o.partial?'<span class="fl red">부분발송</span>':'')+(dn>=2&&!o.card?`<span class="fl warn">미입금 D+${dn}일</span>`:'');
-  const nextBtn=i>=0&&i<5?`<div class="next"><button type="button" class="n${i}" data-next="${esc(o.po)}">${NEXT_LABEL[i]}</button></div>`:'';
+  const mainBtn=i>=0&&i<5?`<button type="button" class="n${i} nmain" data-next="${esc(o.po)}">${NEXT_LABEL[i]}</button>`:'';
+  const ntcBtn=o.status!==CANCEL?`<button type="button" class="ntc${o.noticeSent?' on':''}" data-ntc="${esc(o.po)}" aria-pressed="${o.noticeSent?'true':'false'}" title="${esc(o.noticeAt||'고객에게 안내 메시지를 보냈으면 눌러 표시')}">${o.noticeSent?'✓ 안내완료':'안내완료'}</button>`:'';
+  const nextBtn=mainBtn||ntcBtn?`<div class="next">${mainBtn}${ntcBtn}</div>`:'';
   return `<article class="card" id="c-${esc(o.po)}">
     <button type="button" class="hd" data-open="${esc(o.po)}" aria-label="${esc(o.shop)} 주문 자세히 보기">
       ${flags?`<div class="flags">${flags}</div>`:''}
@@ -340,6 +345,15 @@ function renderOrders(){
   $('main').innerHTML=L.length?L.map(card).join(''):`<div class="empty">${Q?'검색 결과가 없습니다':esc(F)+' 주문이 없습니다'}</div>`;
 }
 
+/* 안내완료 토글 (2026-11-25): 누르면 바로 바뀌고 뒤에서 시트(주문_접수 '안내완료' 열)에 저장, 실패하면 되돌림 */
+const NTC_BUSY={};
+function toggleNotice(po,btn){
+  const o=S.orders.find(x=>x.po===po);if(!o||NTC_BUSY[po])return;
+  const on=!o.noticeSent,paint=()=>{const b=document.querySelector(`[data-ntc="${CSS.escape(po)}"]`);if(b){b.classList.toggle('on',!!o.noticeSent);b.textContent=o.noticeSent?'✓ 안내완료':'안내완료';b.setAttribute('aria-pressed',o.noticeSent?'true':'false')}};
+  o.noticeSent=on;paint();NTC_BUSY[po]=1;
+  call('adminSetNotice',{po,on}).then(r=>{o.noticeSent=r.noticeSent;o.noticeAt=r.noticeAt;paint();keep.set('pb_sum',S);toast(`${o.shop} · ${on?'안내완료 표시':'안내완료 해제'}`)})
+    .catch(x=>{o.noticeSent=!on;paint();toast(x.message)}).finally(()=>{delete NTC_BUSY[po]});
+}
 /* 단계 바꾸기 (되돌리기 지원) */
 async function setStage(po,status,extra,btn){
   const o=S.orders.find(x=>x.po===po);if(!o)return;
@@ -1059,6 +1073,7 @@ document.addEventListener('click',e=>{
   const sf=e.target.closest('[data-shipf]');if(sf){SHIPF=SHIPF===sf.dataset.shipf?'':sf.dataset.shipf;renderOrders();scrollTo(0,0);return}
   const ss=e.target.closest('[data-ss]');if(ss){const w=ss.closest('.shipset'),c=w.dataset.sc,type=w.querySelector('[data-st]').value,eta=w.querySelector('[data-eta]').value.trim();ss.disabled=true;ss.textContent='저장 중…';
     call('adminSetShipping',{code:c,type,eta}).then(r=>{const p=STK.products.find(x=>x.c===c);if(p){p.fast=r.fast;p.eta=r.eta}toast(`${c} → ${r.fast?'⚡ 바로발송':'🗓️ 예약발송'+(r.eta?' ('+r.eta+')':'')} 저장 (주문 페이지는 최대 3분 뒤 반영)`);load()}).catch(x=>toast(x.message)).finally(()=>{ss.disabled=false;ss.textContent='저장'});return}
+  const nt=e.target.closest('[data-ntc]');if(nt){toggleNotice(nt.dataset.ntc,nt);return}
   const t=e.target.closest('[data-tab],[data-f],[data-next],[data-open],[data-agg],[data-inv]');if(!t)return;
   if(t.dataset.tab){TAB=t.dataset.tab;scrollTo(0,0);render();if(Date.now()-PFAT>60000)pfSoon()}   /* 1분 넘게 지난 탭 데이터는 뒤에서 새로 받음 */
   else if(t.dataset.f){F=t.dataset.f;renderOrders();scrollTo(0,0)}
