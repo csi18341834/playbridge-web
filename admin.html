@@ -5,7 +5,7 @@
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<script>(function(){var B='7e03a874cd';try{fetch('admin-version.json?t='+Date.now(),{cache:'no-store'}).then(function(r){return r.ok?r.json():null}).then(function(j){if(!j||!j.v||j.v===B)return;var u=new URL(location.href);if(u.searchParams.get('v')===j.v)return;u.searchParams.set('v',j.v);location.replace(u.toString())}).catch(function(){})}catch(e){}})();</script>
+<script>(function(){var B='8aa25b58a2';try{fetch('admin-version.json?t='+Date.now(),{cache:'no-store'}).then(function(r){return r.ok?r.json():null}).then(function(j){if(!j||!j.v||j.v===B)return;var u=new URL(location.href);if(u.searchParams.get('v')===j.v)return;u.searchParams.set('v',j.v);location.replace(u.toString())}).catch(function(){})}catch(e){}})();</script>
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <meta name="robots" content="noindex,nofollow">
@@ -73,6 +73,7 @@ main{padding:10px 16px}
 .next button{flex:1;min-height:46px;border:0;border-radius:12px;font-size:16px;font-weight:900;color:#fff}
 .n0{background:var(--s1)}.n1{background:var(--s2)}.n2{background:var(--s3)}.n3{background:var(--s4)}.n4{background:var(--pk)}
 .next button:disabled{opacity:.55}
+.imgbtns{display:flex;gap:8px;margin-top:10px}.imgbtns .btn{flex:1;min-width:0;min-height:52px;font-size:15px;line-height:1.2;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:6px 4px}.imgbtns small{font-size:12px;font-weight:700;color:var(--sub)}
 .next .nmain{flex:6;min-width:0}
 .next button.ntc{flex:4;min-width:0;padding:0 6px;background:#fff;color:#5d5872;border:1.5px solid #d9d2c3;font-size:15px;font-weight:800;white-space:nowrap}   /* 안내완료 토글 (2026-11-25): 미체크는 흐리게 → 오터치 방지 */
 .next button.ntc.on{background:#e3f6ec;color:#0b7a4b;border-color:#0b7a4b;font-weight:900}
@@ -370,6 +371,56 @@ async function setStage(po,status,extra,btn){
 let scrollY0=0;
 function openPane(){if($('pane').hidden){scrollY0=scrollY;document.body.classList.add('lock')}$('pane').hidden=false}
 function closePane(){if($('pane').hidden)return;$('pane').hidden=true;openPo='';document.body.classList.remove('lock');scrollTo(0,scrollY0)}
+/* 주문내역 이미지 (2026-11-25 요청자 'PC에서는 캡처가 애매'): 상세 창 품목·합계를 그림 한 장(PNG)으로 만들어
+   PC는 클립보드 복사 → 카톡 PC 창에 Ctrl+V, 폰은 공유(카톡으로 보내기)·저장. 사진은 lh3(CORS 허용)에서 받아 그림 */
+function oiLoad(u){return new Promise(r=>{if(!u)return r(null);const im=new Image();im.crossOrigin='anonymous';const t=setTimeout(()=>r(null),5000);
+  im.onload=()=>{clearTimeout(t);r(im)};im.onerror=()=>{clearTimeout(t);r(null)};im.src=u.replace(/=w\d+$/,'=w300')})}
+async function oiDraw(o){
+  const W=720,SC=2,F="'Noto Sans KR',system-ui,sans-serif",PAD=28,TH=96;
+  const ims=await Promise.all(o.items.map(t=>oiLoad(picOf(t))));
+  const c=document.createElement('canvas'),x=c.getContext('2d');
+  const wrap=(txt,w,font)=>{x.font=font;const out=[];let line='';for(const ch of String(txt)){if(x.measureText(line+ch).width>w&&line){out.push(line);line=ch.trim()?ch:''}else line+=ch}if(line)out.push(line);return out};
+  const nameW=W-PAD*2-TH-16-150;
+  const rows=o.items.map(t=>{const n=nm(t.n),L1=wrap(n.main,nameW,`700 24px ${F}`),L2=wrap([n.op,n.pa,t.unit].filter(Boolean).join(' · '),nameW,`500 19px ${F}`);return {t,L1,L2,h:Math.max(TH,L1.length*34+L2.length*27+(t.fast==null?0:34))+24}});
+  const memo=/^\[카톡주문\]/.test(o.memo||'')?'':String(o.memo||'').trim();   // 카톡 등록 메모는 내부용이라 고객용 그림에서 뺌
+  const kv=[['상품',won(o.sub)]].concat(o.disc?[['할인 '+(o.coupon||''),'-'+won(o.disc)]]:[]).concat([['배송비',o.ship?won(o.ship):'무료']]);
+  const H=150+rows.reduce((a,r)=>a+r.h,0)+20+kv.length*40+80+(memo?60:0)+60;
+  c.width=W*SC;c.height=H*SC;x.scale(SC,SC);
+  x.fillStyle='#fffaf0';x.fillRect(0,0,W,H);
+  x.fillStyle='#ffd23f';x.fillRect(0,0,W,120);
+  x.fillStyle='#1d1a2b';x.textBaseline='top';
+  x.font=`900 20px ${F}`;x.fillText('플레이브릿지 주문내역',PAD,18);
+  x.font=`900 32px ${F}`;x.fillText(wrap(o.shop||'-',W-PAD*2,`900 32px ${F}`)[0],PAD,44);
+  x.font=`700 19px ${F}`;x.fillStyle='#4a4560';x.fillText(`${o.po} · ${o.date}${o.who&&o.who!==o.shop?' · '+o.who:''}`,PAD,86);
+  let y=140;x.fillStyle='#1d1a2b';x.font=`900 24px ${F}`;x.fillText(`품목 ${o.items.length}종 · ${o.packs}팩`,PAD,y);y+=44;
+  rows.forEach((r,k)=>{const im=ims[k],ix=PAD;
+    x.save();x.beginPath();if(x.roundRect)x.roundRect(ix,y,TH,TH,14);else x.rect(ix,y,TH,TH);x.clip();
+    if(im){const s=Math.max(TH/im.width,TH/im.height),w=im.width*s,h=im.height*s;x.drawImage(im,ix+(TH-w)/2,y+(TH-h)/2,w,h)}else{x.fillStyle='#ece4d2';x.fillRect(ix,y,TH,TH)}
+    x.restore();
+    let ty=y,tx=ix+TH+16;x.fillStyle='#1d1a2b';x.font=`700 24px ${F}`;r.L1.forEach(l=>{x.fillText(l,tx,ty);ty+=34});
+    if(r.t.fast!=null){const tag=r.t.fast?'바로발송':'예약'+(r.t.eta?' · '+r.t.eta:'');x.font=`800 17px ${F}`;const tw=x.measureText(tag).width+18;x.fillStyle=r.t.fast?'#e3f6ec':'#ece8ff';x.fillRect(tx,ty+2,tw,26);x.fillStyle=r.t.fast?'#0b7a4b':'#4b3fb5';x.fillText(tag,tx+9,ty+5);ty+=34}
+    x.fillStyle='#5d5872';x.font=`500 19px ${F}`;r.L2.forEach(l=>{x.fillText(l,tx,ty);ty+=27});
+    x.textAlign='right';x.fillStyle='#1d1a2b';x.font=`900 26px ${F}`;x.fillText(r.t.q+'팩',W-PAD,y);x.font=`700 21px ${F}`;x.fillText(won(r.t.sum),W-PAD,y+38);x.textAlign='left';
+    y+=r.h;if(k<rows.length-1){x.fillStyle='#ece4d2';x.fillRect(PAD,y-12,W-PAD*2,2)}});
+  y+=8;x.font=`500 22px ${F}`;kv.forEach(([a,b])=>{x.fillStyle=/^할인/.test(a)?'#c00':'#1d1a2b';x.fillText(a,PAD,y);x.textAlign='right';x.fillText(b,W-PAD,y);x.textAlign='left';y+=40});
+  x.fillStyle='#1d1a2b';x.fillRect(PAD,y,W-PAD*2,3);y+=16;
+  x.font=`900 30px ${F}`;x.fillText('합계',PAD,y);x.textAlign='right';x.fillText(won(o.total),W-PAD,y);x.font=`600 16px ${F}`;x.fillStyle='#5d5872';x.fillText('VAT·배송비 포함',W-PAD,y+40);x.textAlign='left';y+=72;
+  if(memo){x.fillStyle='#fff3c4';x.fillRect(PAD,y,W-PAD*2,46);x.fillStyle='#1d1a2b';x.font=`700 19px ${F}`;x.fillText(wrap('요청사항: '+memo,W-PAD*2-24,`700 19px ${F}`)[0],PAD+12,y+12);y+=60}
+  x.fillStyle='#8a849c';x.font=`600 16px ${F}`;x.fillText('주문·배송 조회: playbridge.io.kr',PAD,H-40);
+  return new Promise(r=>c.toBlob(r,'image/png'));
+}
+function oiName(o){return `주문내역_${o.po}.png`}
+function oiCopy(o){
+  if(!(window.ClipboardItem&&navigator.clipboard&&navigator.clipboard.write)){toast('이 브라우저는 이미지 복사가 안 돼요. [이미지 저장·공유]를 눌러 주세요');return}
+  toast('이미지 만드는 중…');
+  navigator.clipboard.write([new ClipboardItem({'image/png':oiDraw(o)})]).then(()=>toast('주문내역 이미지를 복사했습니다. 카톡 창에 Ctrl+V'),e=>{toast('복사가 안 돼서 이미지로 저장합니다');oiSave(o)});
+}
+async function oiSave(o){
+  toast('이미지 만드는 중…');const b=await oiDraw(o);if(!b){toast('이미지를 만들지 못했습니다');return}
+  const f=new File([b],oiName(o),{type:'image/png'});
+  if(navigator.canShare&&navigator.canShare({files:[f]})&&/Mobi|Android|iPhone|iPad/i.test(navigator.userAgent)){try{await navigator.share({files:[f]});return}catch(e){if(e&&e.name==='AbortError')return}}
+  const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download=oiName(o);document.body.appendChild(a);a.click();setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove()},2000);toast('이미지를 저장했습니다 (다운로드 폴더)');
+}
 function detail(po,focusInv){
   const o=S.orders.find(x=>x.po===po);if(!o)return closePane();
   openPo=po;const i=sIdx(o.status);let cour=o.courier||'';
@@ -381,7 +432,8 @@ function detail(po,focusInv){
     <div class="cxbox" id="cxBox" hidden><label><input type="checkbox" id="rst" checked> 재고 칸(숫자)도 ${o.status===CANCEL?'다시 차감':'되돌리기'}</label><button class="btn w" type="button" id="cxGo" style="margin-top:8px;background:#c00">${o.status===CANCEL?'되돌리기 확정':'취소 확정'}</button></div>
   </div>
   <div class="sec"><h3>품목 ${o.items.length}종 · ${o.packs}팩</h3><ul class="items">${o.items.map(t=>{const x=nm(t.n);return `<li>${picH(t)}<span>${esc(x.main)}${itemTag(t)}${x.op?`<span class="op">${esc(x.op)}</span>`:''}${x.pa?`<span class="ps">${esc(x.pa)} · ${esc(t.unit)}</span>`:''}</span><b>${t.q}팩<br><small style="font-weight:700">${won(t.sum)}</small></b></li>`}).join('')}</ul>
-    <div class="kv"><span>상품</span><span>${won(o.sub)}</span></div>${o.depName||o.depAt?`<div class="kv"><span>입금확인</span><span>${esc(o.depName||'')}${o.depAt?' · '+esc(o.depAt):''}</span></div>`:''}${o.pgType==='PG_CARD'?`<div class="kv"><span>결제수단</span><span>카드PG · ${esc(o.pgStatus||'')}${o.receipt?` · <a href="${esc(o.receipt)}" target="_blank" rel="noopener">매출전표</a>`:''}</span></div>`:''}${o.disc?`<div class="kv" style="color:#c00"><span>할인 ${esc(o.coupon)}</span><span>-${won(o.disc)}</span></div>`:''}<div class="kv"><span>배송비</span><span>${o.ship?won(o.ship):'무료'}</span></div><div class="kv t"><span>합계</span><span>${won(o.total)}</span></div></div>
+    <div class="kv"><span>상품</span><span>${won(o.sub)}</span></div>${o.depName||o.depAt?`<div class="kv"><span>입금확인</span><span>${esc(o.depName||'')}${o.depAt?' · '+esc(o.depAt):''}</span></div>`:''}${o.pgType==='PG_CARD'?`<div class="kv"><span>결제수단</span><span>카드PG · ${esc(o.pgStatus||'')}${o.receipt?` · <a href="${esc(o.receipt)}" target="_blank" rel="noopener">매출전표</a>`:''}</span></div>`:''}${o.disc?`<div class="kv" style="color:#c00"><span>할인 ${esc(o.coupon)}</span><span>-${won(o.disc)}</span></div>`:''}<div class="kv"><span>배송비</span><span>${o.ship?won(o.ship):'무료'}</span></div><div class="kv t"><span>합계</span><span>${won(o.total)}</span></div>
+    <div class="imgbtns"><button class="btn ghost" type="button" id="oiCp">🖼 이미지 복사<small>PC 카톡에 Ctrl+V</small></button><button class="btn ghost" type="button" id="oiSv">💾 이미지 저장·공유<small>폰 카톡에 보내기</small></button></div></div>
   ${o.memo?`<div class="req" style="margin:0 0 12px">요청사항: ${esc(o.memo)}</div>`:''}
   <div class="sec"><h3>${o.card?'💳 법인카드 결제링크 · 안내문':'입금 안내문'}</h3>
     ${o.card?`<input class="f" id="plink" type="url" inputmode="url" autocomplete="off" placeholder="https:// 카드 결제링크 붙여넣기" value="${esc(o.payLink||'')}" aria-label="카드 결제링크">
@@ -422,6 +474,7 @@ function detail(po,focusInv){
     try{const r=await call('adminUpdateStatus',{po,partial:v});putOrder(r.order);render();toast(v?'부분발송으로 표시했습니다':'부분발송 표시를 껐습니다')}catch(x){c.checked=!v;toast(x.message)}finally{c.disabled=false}});
   if($('kakao'))$('kakao').addEventListener('click',()=>copy(shipMsg(o),'발송안내 멘트를 복사했습니다. 카톡에 붙여넣어 주세요'));
   $('addrCp').addEventListener('click',()=>copy(o.addr,'주소를 복사했습니다'));
+  $('oiCp').addEventListener('click',()=>oiCopy(o));$('oiSv').addEventListener('click',()=>oiSave(o));
   $('repCp').addEventListener('click',async e=>{const b=e.target;b.disabled=true;
     try{const r=await call('adminReplyMessage',{po});copy(r.replyMessage,'안내문을 복사했습니다. 카톡에 붙여넣어 주세요')}catch(x){toast(x.message)}finally{b.disabled=false}});
   $('ntfGo').addEventListener('click',async e=>{const b=e.target;if(!confirm('이 주문의 알림 메일을 관리자 메일로 보낼까요?'))return;b.disabled=true;b.textContent='보내는 중…';
