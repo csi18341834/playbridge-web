@@ -5,7 +5,7 @@
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<script>(function(){var B='bd4e2dc70f';try{fetch('admin-version.json?t='+Date.now(),{cache:'no-store'}).then(function(r){return r.ok?r.json():null}).then(function(j){if(!j||!j.v||j.v===B)return;var u=new URL(location.href);if(u.searchParams.get('v')===j.v)return;u.searchParams.set('v',j.v);location.replace(u.toString())}).catch(function(){})}catch(e){}})();</script>
+<script>(function(){var B='2e7b5381bd';try{fetch('admin-version.json?t='+Date.now(),{cache:'no-store'}).then(function(r){return r.ok?r.json():null}).then(function(j){if(!j||!j.v||j.v===B)return;var u=new URL(location.href);if(u.searchParams.get('v')===j.v)return;u.searchParams.set('v',j.v);location.replace(u.toString())}).catch(function(){})}catch(e){}})();</script>
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <meta name="robots" content="noindex,nofollow">
@@ -40,7 +40,8 @@ header{position:sticky;top:0;z-index:20;background:var(--y);padding:10px 16px 0;
 .ib{min-height:40px;padding:0 12px;border:2px solid var(--ink);border-radius:12px;background:#fff;font-size:14px;font-weight:900;white-space:nowrap}
 @media(max-width:430px){.top{gap:5px}.top .ib{min-height:38px;padding:6px 9px;font-size:13px}.top h1{font-size:16px}.top h1 small{display:none}}
 .mcq{display:flex;gap:6px;flex-wrap:wrap;margin-top:6px}.mcq button{min-height:36px;padding:0 12px;border:2px solid var(--line);border-radius:999px;background:#fff;font-weight:800;font-size:14px}.mcq button.on{background:var(--ink);color:#fff;border-color:var(--ink)}
-.mcl{display:block;margin-top:12px;font-weight:900;font-size:15px}.mcres{margin-top:14px;padding:12px;border-radius:14px;background:#fff;border:2px solid var(--line)}.mcres .kv{font-size:15px;gap:8px}.mcres .kv>span:first-child{white-space:nowrap}.mcres .kv>span:last-child{text-align:right}.mcbadge{margin-top:10px;padding:10px;border-radius:12px;font-weight:900;text-align:center;font-size:16px}.mcbadge.ok{background:#e3f6ec;color:#0b7a4b}.mcbadge.mid{background:#fff3c4;color:#8a6100}.mcbadge.bad{background:#ffe3e3;color:#c00}
+.mcl{display:block;margin-top:12px;font-weight:900;font-size:15px}.mchd{display:flex;justify-content:space-between;align-items:flex-end;gap:8px}.mchd .lnk{background:none;border:0;color:#1d4ed8;font-weight:800;font-size:13px;white-space:nowrap;padding:0 0 2px}
+.mcsw{position:relative}.mclist{position:absolute;left:0;right:0;top:100%;z-index:30;margin-top:4px;max-height:300px;overflow:auto;background:#fff;border:2px solid var(--ink);border-radius:12px;box-shadow:0 8px 24px rgba(0,0,0,.15)}.mclist button{display:block;width:100%;text-align:left;padding:10px 12px;border:0;border-bottom:1px solid var(--line);background:#fff;font-size:14px;line-height:1.4}.mclist button:last-child{border-bottom:0}.mclist .ps{font-size:12.5px}.mcres{margin-top:14px;padding:12px;border-radius:14px;background:#fff;border:2px solid var(--line)}.mcres .kv{font-size:15px;gap:8px}.mcres .kv>span:first-child{white-space:nowrap}.mcres .kv>span:last-child{text-align:right}.mcbadge{margin-top:10px;padding:10px;border-radius:12px;font-weight:900;text-align:center;font-size:16px}.mcbadge.ok{background:#e3f6ec;color:#0b7a4b}.mcbadge.mid{background:#fff3c4;color:#8a6100}.mcbadge.bad{background:#ffe3e3;color:#c00}
 .sub{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:4px;margin-top:10px}
 .sub button{min-height:44px;border:0;border-radius:12px 12px 0 0;background:rgba(255,255,255,.55);font-size:14px;font-weight:900;line-height:1.2;padding:4px 2px}
 .sub button.on{background:var(--bg)}
@@ -516,7 +517,8 @@ function mcOpen(){
   openPo='';$('pT').innerHTML='💰 마진 계산 <small style="font-size:13px;color:var(--sub)">1688 매입가 → 원가·마진</small>';
   const K=[[250,'일반 소품·키링 ×250'],[280,'부피큼·무거움 ×280'],[230,'초경량·소형 ×230']];
   $('pB').innerHTML=`<div class="sec">
-    <label class="mcl" for="mcName">상품명 (선택)</label><input class="f" id="mcName" type="text" placeholder="카톡 공유용" value="${esc(MC.name)}" autocomplete="off">
+    <div class="mchd"><label class="mcl" for="mcName">상품명 (검색·직접입력)</label><button type="button" class="lnk" id="mcReset">초기화 / 신상품 직접입력</button></div>
+    <div class="mcsw"><input class="f" id="mcName" type="text" placeholder="예: 체리, 치이카와, KR-PLU-047" value="${esc(MC.name)}" autocomplete="off" role="combobox" aria-autocomplete="list" aria-controls="mcList"><div class="mclist" id="mcList" role="listbox" hidden></div></div>
     <label class="mcl" for="mcYuan">1688 매입가 (위안/개)</label><input class="f" id="mcYuan" type="text" inputmode="decimal" placeholder="예: 17.5" value="${esc(MC.yuan)}" autocomplete="off">
     <label class="mcl" for="mcPack">1팩 구성 개수 (개입)</label><input class="f" id="mcPack" type="text" inputmode="numeric" value="${esc(MC.pack)}" autocomplete="off">
     <div class="mcq" id="mcPackQ">${[1,4,10,12].map(n=>`<button type="button" data-mcp="${n}">${n}개</button>`).join('')}</div>
@@ -551,6 +553,21 @@ function mcOpen(){
       <div class="kv t"><span>실질 마진율</span><span>${rate.toFixed(1)}%</span></div><div class="mcbadge ${st[0]}">${st[1]}</div>`;
   };
   ['mcName','mcYuan','mcPack','mcPrice','mcBuf'].forEach(id=>$(id).addEventListener('input',calc));
+  /* 마스터 상품 검색 (숨김·검토대기 포함): 고르면 위안·1팩 개수·지금 개당 공급가(1팩 공급가 ÷ 개수) 자동 입력 */
+  const M=()=>(STK&&STK.master)||[];
+  if(!M().length)call('adminStock',{}).then(r=>{STK=r;keep.set('pb_stk',r);showList()}).catch(()=>{});
+  const per=x=>x.packQty?Math.round(x.supplyPrice/x.packQty):x.supplyPrice;
+  const showList=()=>{const q=$('mcName').value.replace(/\s/g,'').toLowerCase(),box=$('mcList');if(!q||document.activeElement!==$('mcName')){box.hidden=true;return}
+    const L=M().filter(x=>(x.c+x.n).replace(/\s/g,'').toLowerCase().includes(q)).slice(0,8);
+    box.innerHTML=L.length?L.map(x=>`<button type="button" role="option" data-mcc="${esc(x.c)}"><b>[${esc(x.c)}]</b> ${esc(nm(x.n).main)} <span class="ps">(${x.costCny?x.costCny+'위안':'위안 없음'} · ${x.packQty}개입 · 현재 ${won(per(x))}/개${x.status!=='판매중'?' · '+esc(x.status):''})</span></button>`).join(''):`<div class="ps" style="padding:10px">'${esc($('mcName').value)}' 상품이 없어요 · 신상품이면 아래에 직접 입력하세요</div>`;
+    box.hidden=false};
+  $('mcName').addEventListener('input',showList);$('mcName').addEventListener('focus',showList);
+  $('mcName').addEventListener('blur',()=>setTimeout(()=>{$('mcList').hidden=true},200));
+  $('mcList').addEventListener('mousedown',e=>e.preventDefault());
+  $('mcList').addEventListener('click',e=>{const b=e.target.closest('[data-mcc]');if(!b)return;const x=M().find(y=>y.c===b.dataset.mcc);if(!x)return;
+    $('mcName').value=nm(x.n).main;$('mcYuan').value=x.costCny||'';$('mcPack').value=x.packQty||'';$('mcPrice').value=per(x)||'';$('mcList').hidden=true;$('mcName').blur();calc();
+    if(!x.costCny)toast('이 상품은 시트에 1688 매입가(위안)가 없어요. 직접 넣어 주세요')});
+  $('mcReset').addEventListener('click',()=>{['mcName','mcYuan','mcPrice'].forEach(id=>$(id).value='');$('mcPack').value=12;$('mcBuf').value=1000;MC.k=250;calc();$('mcName').focus()});
   B.querySelectorAll('[data-mcp]').forEach(b=>b.addEventListener('click',()=>{$('mcPack').value=b.dataset.mcp;calc()}));
   B.querySelectorAll('[data-mck]').forEach(b=>b.addEventListener('click',()=>{MC.k=+b.dataset.mck;calc()}));
   B.querySelectorAll('[data-mcr]').forEach(b=>b.addEventListener('click',()=>{const y=num($('mcYuan').value);if(!y){toast('먼저 1688 매입가(위안)를 넣어 주세요');$('mcYuan').focus();return}$('mcPrice').value=Math.round(y*(+b.dataset.mcr)/100)*100;calc()}));
