@@ -5,7 +5,7 @@
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<script>(function(){var B='b0bc4d45d8';try{fetch('admin-version.json?t='+Date.now(),{cache:'no-store'}).then(function(r){return r.ok?r.json():null}).then(function(j){if(!j||!j.v||j.v===B)return;var u=new URL(location.href);if(u.searchParams.get('v')===j.v)return;u.searchParams.set('v',j.v);location.replace(u.toString())}).catch(function(){})}catch(e){}})();</script>
+<script>(function(){var B='250ba94abf';try{fetch('admin-version.json?t='+Date.now(),{cache:'no-store'}).then(function(r){return r.ok?r.json():null}).then(function(j){if(!j||!j.v||j.v===B)return;var u=new URL(location.href);if(u.searchParams.get('v')===j.v)return;u.searchParams.set('v',j.v);location.replace(u.toString())}).catch(function(){})}catch(e){}})();</script>
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <meta name="robots" content="noindex,nofollow">
@@ -352,7 +352,7 @@ function card(o){
   const i=sIdx(o.status),first=nm((o.items[0]||{}).n),dn=unpaidDays(o);
   const flags=shipB(o)+(o.status!==CANCEL?`<span class="fl pos${o.poSent?' on':''}" data-posent="${esc(o.po)}" role="button" tabindex="0" title="누르면 발주서 전송 체크/해제">📄 발주서 ${o.poSent?'전송됨':'미전송'}</span>`:'')+(o.card?`<span class="fl card">💳 법인카드 요청${o.payLink?' · 링크 저장됨':''}</span>`:'')+(o.route==='카톡'?'<span class="fl kk">💬 카톡</span>':'')+(o.coupon?`<span class="fl cp">🎟 ${esc(o.coupon)}</span>`:'')+(o.pgType==='PG_CARD'?`<span class="fl card">카드PG · ${esc(o.pgStatus||'')}</span>`:'')+(o.partial?'<span class="fl red">부분발송</span>':'')+(dn>=2&&!o.card?`<span class="fl warn">미입금 D+${dn}일</span>`:'');
   const mainBtn=i>=0&&i<5?`<button type="button" class="n${i} nmain" data-next="${esc(o.po)}">${NEXT_LABEL[i]}</button>`:'';
-  const ntcBtn=o.status!==CANCEL?wsBtn(o):'';   /* 오른쪽 = 진행 스텝 버튼 (카톡방 개설 → 주문 체크(안내) → 발주서 전달) */
+  const ntcBtn=wsBtn(o);   /* 취소 주문도 진행 스텝 체크 가능 (2026-11-25 요청자 '백경도 똑같이') */   /* 오른쪽 = 진행 스텝 버튼 (카톡방 개설 → 주문 체크(안내) → 발주서 전달) */
   const nextBtn=mainBtn||ntcBtn?`<div class="next">${mainBtn}${ntcBtn}</div>`:'';
   return `<article class="card" id="c-${esc(o.po)}">
     <button type="button" class="hd" data-open="${esc(o.po)}" aria-label="${esc(o.shop)} 주문 자세히 보기">
