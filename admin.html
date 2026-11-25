@@ -5,7 +5,7 @@
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<script>(function(){var B='a93ed28b2f';try{fetch('admin-version.json?t='+Date.now(),{cache:'no-store'}).then(function(r){return r.ok?r.json():null}).then(function(j){if(!j||!j.v||j.v===B)return;var u=new URL(location.href);if(u.searchParams.get('v')===j.v)return;u.searchParams.set('v',j.v);location.replace(u.toString())}).catch(function(){})}catch(e){}})();</script>
+<script>(function(){var B='349f9b8134';try{fetch('admin-version.json?t='+Date.now(),{cache:'no-store'}).then(function(r){return r.ok?r.json():null}).then(function(j){if(!j||!j.v||j.v===B)return;var u=new URL(location.href);if(u.searchParams.get('v')===j.v)return;u.searchParams.set('v',j.v);location.replace(u.toString())}).catch(function(){})}catch(e){}})();</script>
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <meta name="robots" content="noindex,nofollow">
@@ -78,7 +78,8 @@ main{padding:10px 16px}
 .pocard{background:var(--card);border:2px solid var(--line);border-radius:16px;padding:12px;margin-bottom:10px}.pobtm{display:flex;justify-content:space-between;gap:6px;flex-wrap:wrap;margin-top:8px;font-size:14px}.pobtm .lnk{background:none;border:0;color:#1d4ed8;font-weight:800;padding:6px 0}.poprev img{width:100%;margin-top:8px;border-radius:12px;border:1px solid var(--line)}
 .imgbtns{display:flex;gap:8px;margin-top:10px}.imgbtns .btn{flex:1;min-width:0;min-height:52px;font-size:15px;line-height:1.2;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:6px 4px}.imgbtns small{font-size:12px;font-weight:700;color:var(--sub)}
 .next .nmain{flex:6;min-width:0}
-.next button.ntc{flex:4;min-width:0;padding:2px 4px;letter-spacing:-.3px;background:#fff;color:#5d5872;border:1.5px solid #d9d2c3;font-size:14px;line-height:1.2;font-weight:800;white-space:normal;word-break:keep-all}   /* 안내완료 토글 (2026-11-25): 미체크는 흐리게 → 오터치 방지 */
+.next button.ntc{flex:4;min-width:0;padding:2px 4px;letter-spacing:-.3px;background:#fff;color:#5d5872;border:1.5px solid #d9d2c3;font-size:14px;line-height:1.2;font-weight:800;white-space:normal;word-break:keep-all}
+.next button.ntc{display:flex;align-items:center;justify-content:center;gap:6px;text-align:left}.ntc .cb{flex:none;width:22px;height:22px;border:2.5px solid #8a849c;border-radius:6px;background:#fff;display:inline-flex;align-items:center;justify-content:center;font-size:16px;font-weight:900;line-height:1;color:#fff}.next button.ntc.on .cb{background:#0b7a4b;border-color:#0b7a4b}   /* 안내완료 토글 (2026-11-25): 미체크는 흐리게 → 오터치 방지 */
 .next button.ntc.on{background:#e3f6ec;color:#0b7a4b;border-color:#0b7a4b;font-weight:900}
 .flags{display:flex;gap:4px;flex-wrap:wrap;margin-bottom:4px}
 .fl{padding:1px 8px;border-radius:8px;font-size:12px;font-weight:900;white-space:nowrap}
@@ -331,7 +332,7 @@ function card(o){
   const i=sIdx(o.status),first=nm((o.items[0]||{}).n),dn=unpaidDays(o);
   const flags=shipB(o)+(o.card?`<span class="fl card">💳 법인카드 요청${o.payLink?' · 링크 저장됨':''}</span>`:'')+(o.route==='카톡'?'<span class="fl kk">💬 카톡</span>':'')+(o.coupon?`<span class="fl cp">🎟 ${esc(o.coupon)}</span>`:'')+(o.pgType==='PG_CARD'?`<span class="fl card">카드PG · ${esc(o.pgStatus||'')}</span>`:'')+(o.partial?'<span class="fl red">부분발송</span>':'')+(dn>=2&&!o.card?`<span class="fl warn">미입금 D+${dn}일</span>`:'');
   const mainBtn=i>=0&&i<5?`<button type="button" class="n${i} nmain" data-next="${esc(o.po)}">${NEXT_LABEL[i]}</button>`:'';
-  const ntcBtn=o.status!==CANCEL?`<button type="button" class="ntc${o.noticeSent?' on':''}" data-ntc="${esc(o.po)}" aria-pressed="${o.noticeSent?'true':'false'}" title="${esc(o.noticeAt||'고객 카톡방을 만들었으면 눌러 표시')}">${o.noticeSent?'✓ 카톡방 개설완료':'카톡방 개설완료'}</button>`:'';
+  const ntcBtn=o.status!==CANCEL?`<button type="button" class="ntc${o.noticeSent?' on':''}" data-ntc="${esc(o.po)}" aria-pressed="${o.noticeSent?'true':'false'}" title="${esc(o.noticeAt||'고객 카톡방을 만들었으면 눌러 표시')}">${ntcLbl(o.noticeSent)}</button>`:'';
   const nextBtn=mainBtn||ntcBtn?`<div class="next">${mainBtn}${ntcBtn}</div>`:'';
   return `<article class="card" id="c-${esc(o.po)}">
     <button type="button" class="hd" data-open="${esc(o.po)}" aria-label="${esc(o.shop)} 주문 자세히 보기">
@@ -350,11 +351,13 @@ function renderOrders(){
   $('main').innerHTML=L.length?L.map(card).join(''):`<div class="empty">${Q?'검색 결과가 없습니다':esc(F)+' 주문이 없습니다'}</div>`;
 }
 
+/* 체크박스 모양 (2026-11-25 요청자 '체크하는 건지 모르겠다'): 빈 네모 + '카톡방 개설' ↔ 초록 네모 ✓ + '카톡방 개설완료' */
+const ntcLbl=on=>`<span class="cb" aria-hidden="true">${on?'✓':''}</span><span>${on?'카톡방 개설완료':'카톡방 개설'}</span>`;
 /* 안내완료 토글 (2026-11-25): 누르면 바로 바뀌고 뒤에서 시트(주문_접수 '안내완료' 열)에 저장, 실패하면 되돌림 */
 const NTC_BUSY={};
 function toggleNotice(po,btn){
   const o=S.orders.find(x=>x.po===po);if(!o||NTC_BUSY[po])return;
-  const on=!o.noticeSent,paint=()=>{const b=document.querySelector(`[data-ntc="${CSS.escape(po)}"]`);if(b){b.classList.toggle('on',!!o.noticeSent);b.textContent=o.noticeSent?'✓ 카톡방 개설완료':'카톡방 개설완료';b.setAttribute('aria-pressed',o.noticeSent?'true':'false')}};
+  const on=!o.noticeSent,paint=()=>{const b=document.querySelector(`[data-ntc="${CSS.escape(po)}"]`);if(b){b.classList.toggle('on',!!o.noticeSent);b.innerHTML=ntcLbl(o.noticeSent);b.setAttribute('aria-pressed',o.noticeSent?'true':'false')}};
   o.noticeSent=on;paint();NTC_BUSY[po]=1;
   call('adminSetNotice',{po,on}).then(r=>{o.noticeSent=r.noticeSent;o.noticeAt=r.noticeAt;paint();keep.set('pb_sum',S);toast(`${o.shop} · ${on?'카톡방 개설완료 표시':'카톡방 개설완료 해제'}`)})
     .catch(x=>{o.noticeSent=!on;paint();toast(x.message)}).finally(()=>{delete NTC_BUSY[po]});
