@@ -5,7 +5,7 @@
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<script>(function(){var B='0a8fc5b24a';try{fetch('admin-version.json?t='+Date.now(),{cache:'no-store'}).then(function(r){return r.ok?r.json():null}).then(function(j){if(!j||!j.v||j.v===B)return;var u=new URL(location.href);if(u.searchParams.get('v')===j.v)return;u.searchParams.set('v',j.v);location.replace(u.toString())}).catch(function(){})}catch(e){}})();</script>
+<script>(function(){var B='13020ff382';try{fetch('admin-version.json?t='+Date.now(),{cache:'no-store'}).then(function(r){return r.ok?r.json():null}).then(function(j){if(!j||!j.v||j.v===B)return;var u=new URL(location.href);if(u.searchParams.get('v')===j.v)return;u.searchParams.set('v',j.v);location.replace(u.toString())}).catch(function(){})}catch(e){}})();</script>
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <meta name="robots" content="noindex,nofollow">
@@ -74,7 +74,7 @@ main{padding:10px 16px}
 .n0{background:var(--s1)}.n1{background:var(--s2)}.n2{background:var(--s3)}.n3{background:var(--s4)}.n4{background:var(--pk)}
 .next button:disabled{opacity:.55}
 .pohd{margin-bottom:10px}.pohd .ps{margin:0 0 8px;font-size:14px;color:var(--sub)}.pochips{display:flex;gap:6px;margin-bottom:8px}.pochips button{flex:1;min-height:40px;border:2px solid var(--line);border-radius:999px;background:#fff;font-weight:800;font-size:15px}.pochips button.on{background:var(--ink);color:#fff;border-color:var(--ink)}
-.pocard{background:var(--card);border:2px solid var(--line);border-radius:16px;padding:12px;margin-bottom:10px}.pobtm{display:flex;justify-content:space-between;gap:8px;margin-top:8px;font-size:14px}.pobtm .lnk{background:none;border:0;color:#1d4ed8;font-weight:800;padding:6px 0}.poprev img{width:100%;margin-top:8px;border-radius:12px;border:1px solid var(--line)}
+.pocard{background:var(--card);border:2px solid var(--line);border-radius:16px;padding:12px;margin-bottom:10px}.pobtm{display:flex;justify-content:space-between;gap:6px;flex-wrap:wrap;margin-top:8px;font-size:14px}.pobtm .lnk{background:none;border:0;color:#1d4ed8;font-weight:800;padding:6px 0}.poprev img{width:100%;margin-top:8px;border-radius:12px;border:1px solid var(--line)}
 .imgbtns{display:flex;gap:8px;margin-top:10px}.imgbtns .btn{flex:1;min-width:0;min-height:52px;font-size:15px;line-height:1.2;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:6px 4px}.imgbtns small{font-size:12px;font-weight:700;color:var(--sub)}
 .next .nmain{flex:6;min-width:0}
 .next button.ntc{flex:4;min-width:0;padding:0 6px;background:#fff;color:#5d5872;border:1.5px solid #d9d2c3;font-size:15px;font-weight:800;white-space:nowrap}   /* 안내완료 토글 (2026-11-25): 미체크는 흐리게 → 오터치 방지 */
@@ -230,10 +230,10 @@ textarea{width:100%;min-height:84px;border:2px solid var(--line);border-radius:1
     <div class="sub" role="tablist">
       <button type="button" data-tab="ord" class="on">주문<br>진행관리</button>
       <button type="button" data-tab="agg">1688<br>발주합계</button>
-      <button type="button" data-tab="stk">재고<br>입고알림</button>
-      <button type="button" data-tab="sta">📊<br>간단 통계</button>
       <button type="button" data-tab="po">📄<br>발주서</button>
       <button type="button" data-tab="tax">🧾 세금<br>계산서</button>
+      <button type="button" data-tab="stk">재고<br>입고알림</button>
+      <button type="button" data-tab="sta">📊<br>간단 통계</button>
     </div>
     <div class="bar" id="ordBar">
       <div class="chips" id="chips"></div>
@@ -425,6 +425,32 @@ async function oiDraw(o,doc){
   x.fillStyle='#8a849c';x.font=`600 16px ${F}`;x.fillText('주문·배송 조회: playbridge.io.kr',PAD,H-40);
   return new Promise(r=>c.toBlob(r,'image/png'));
 }
+/* 📄 발주서 PDF (2026-11-25 요청자 '지금 있는 거 좋으니 PDF로도'): 발주서 그림을 JPEG로 바꿔 A4 한 장 PDF에 넣음(외부 라이브러리 없이 직접 만듦)
+   → 폰은 공유(카톡으로 파일 보내기), PC는 다운로드 '발주서_{발주번호}.pdf' */
+function pdfFromJpeg(jpg,w,h){
+  const PW=595.28,PH=841.89,M=24,sc=Math.min((PW-2*M)/w,(PH-2*M)/h),dw=+(w*sc).toFixed(2),dh=+(h*sc).toFixed(2),dx=+((PW-dw)/2).toFixed(2),dy=+(PH-M-dh).toFixed(2);
+  const enc=new TextEncoder(),parts=[],offs=[];let len=0;const push=b=>{const u=typeof b==='string'?enc.encode(b):b;parts.push(u);len+=u.length};
+  const content=`q ${dw} 0 0 ${dh} ${dx} ${dy} cm /Im0 Do Q`;
+  push('%PDF-1.4\n%\xe2\xe3\xcf\xd3\n');
+  const obj=(n,body)=>{offs[n]=len;push(`${n} 0 obj\n`);body();push('\nendobj\n')};
+  obj(1,()=>push('<< /Type /Catalog /Pages 2 0 R >>'));
+  obj(2,()=>push('<< /Type /Pages /Kids [3 0 R] /Count 1 >>'));
+  obj(3,()=>push(`<< /Type /Page /Parent 2 0 R /MediaBox [0 0 ${PW} ${PH}] /Resources << /XObject << /Im0 4 0 R >> >> /Contents 5 0 R >>`));
+  obj(4,()=>{push(`<< /Type /XObject /Subtype /Image /Width ${w} /Height ${h} /ColorSpace /DeviceRGB /BitsPerComponent 8 /Filter /DCTDecode /Length ${jpg.length} >>\nstream\n`);push(jpg);push('\nendstream')});
+  obj(5,()=>push(`<< /Length ${content.length} >>\nstream\n${content}\nendstream`));
+  const x=len;push(`xref\n0 6\n0000000000 65535 f \n${[1,2,3,4,5].map(n=>String(offs[n]).padStart(10,'0')+' 00000 n \n').join('')}trailer\n<< /Size 6 /Root 1 0 R >>\nstartxref\n${x}\n%%EOF`);
+  return new Blob(parts,{type:'application/pdf'});
+}
+async function poPdf(o){
+  toast('PDF 만드는 중…');
+  const png=await oiDraw(o,true);if(!png){toast('PDF를 만들지 못했습니다');return}
+  const im=await new Promise((res,rej)=>{const i=new Image();i.onload=()=>res(i);i.onerror=rej;i.src=URL.createObjectURL(png)});
+  const c=document.createElement('canvas');c.width=im.naturalWidth;c.height=im.naturalHeight;const x=c.getContext('2d');x.fillStyle='#fff';x.fillRect(0,0,c.width,c.height);x.drawImage(im,0,0);URL.revokeObjectURL(im.src);
+  const jb=await new Promise(r=>c.toBlob(r,'image/jpeg',0.92));const jpg=new Uint8Array(await jb.arrayBuffer());
+  const pdf=pdfFromJpeg(jpg,c.width,c.height),name=`발주서_${o.po}.pdf`,f=new File([pdf],name,{type:'application/pdf'});
+  if(navigator.canShare&&navigator.canShare({files:[f]})&&/Mobi|Android|iPhone|iPad/i.test(navigator.userAgent)){try{await navigator.share({files:[f]});return}catch(e){if(e&&e.name==='AbortError')return}}
+  const a=document.createElement('a');a.href=URL.createObjectURL(pdf);a.download=name;document.body.appendChild(a);a.click();setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove()},3000);toast('PDF를 저장했습니다 (다운로드 폴더)');
+}
 function oiName(o,doc){return `${doc?'발주서':'주문내역'}_${o.po}.png`}
 function oiCopy(o,doc){
   if(!(window.ClipboardItem&&navigator.clipboard&&navigator.clipboard.write)){toast('이 브라우저는 이미지 복사가 안 돼요. [이미지 저장·공유]를 눌러 주세요');return}
@@ -449,15 +475,16 @@ function renderPo(){
     ${L.length?L.map(o=>`<article class="pocard" data-po="${esc(o.po)}"><div class="row1"><div class="who">${esc(o.shop||'-')} <small>(${esc(o.who||'-')})</small></div><span class="badge ${bCls(o.status)}">${esc(o.status)}</span></div>
       <div class="po">${esc(o.po)} · ${esc(o.date)}</div><div class="sum">${esc(nm((o.items[0]||{}).n).short)}${o.items.length>1?` 외 ${o.items.length-1}종`:''} · 총 ${o.packs}팩 · <b>${won(o.total)}</b></div>
       <div class="imgbtns"><button class="btn ghost" type="button" data-pocp="${esc(o.po)}">🖼 발주서 복사<small>PC 카톡에 Ctrl+V</small></button><button class="btn ghost" type="button" data-posv="${esc(o.po)}">💾 저장·공유<small>폰 카톡에 보내기</small></button></div>
-      <div class="pobtm"><button type="button" class="lnk" data-popv="${esc(o.po)}">👁 미리보기</button><button type="button" class="lnk" data-porep="${esc(o.po)}">📋 입금 안내문 글 복사</button></div><div class="poprev"></div></article>`).join(''):`<div class="empty">해당 주문이 없습니다</div>`}`;
+      <div class="pobtm"><button type="button" class="lnk" data-popv="${esc(o.po)}">👁 미리보기</button><button type="button" class="lnk" data-popdf="${esc(o.po)}">📄 PDF 파일</button><button type="button" class="lnk" data-porep="${esc(o.po)}">📋 입금 안내문 글 복사</button></div><div class="poprev"></div></article>`).join(''):`<div class="empty">해당 주문이 없습니다</div>`}`;
   const q=$('poQ');q.addEventListener('input',()=>{POQ=q.value;const p=q.selectionStart;renderPo();const n=$('poQ');n.focus();try{n.setSelectionRange(p,p)}catch(e){}});
 }
 document.addEventListener('click',async e=>{
-  const t=e.target.closest('[data-pof],[data-pocp],[data-posv],[data-popv],[data-porep]');if(!t)return;
-  const o=S.orders.find(x=>x.po===(t.dataset.pocp||t.dataset.posv||t.dataset.popv||t.dataset.porep));
+  const t=e.target.closest('[data-pof],[data-pocp],[data-posv],[data-popv],[data-porep],[data-popdf]');if(!t)return;
+  const o=S.orders.find(x=>x.po===(t.dataset.pocp||t.dataset.posv||t.dataset.popv||t.dataset.porep||t.dataset.popdf));
   if(t.dataset.pof){POF=t.dataset.pof;renderPo();return}
   if(!o)return;
-  if(t.dataset.pocp)oiCopy(o,true);
+  if(t.dataset.popdf){t.disabled=true;try{await poPdf(o)}finally{t.disabled=false}}
+  else if(t.dataset.pocp)oiCopy(o,true);
   else if(t.dataset.posv)oiSave(o,true);
   else if(t.dataset.popv){const box=t.closest('.pocard').querySelector('.poprev');if(box.firstChild){box.innerHTML='';t.textContent='👁 미리보기';return}
     t.textContent='만드는 중…';const b=await oiDraw(o,true);box.innerHTML=`<img alt="발주서 미리보기" src="${URL.createObjectURL(b)}">`;t.textContent='👁 미리보기 닫기'}
