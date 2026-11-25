@@ -5,7 +5,7 @@
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<script>(function(){var B='2e7b5381bd';try{fetch('admin-version.json?t='+Date.now(),{cache:'no-store'}).then(function(r){return r.ok?r.json():null}).then(function(j){if(!j||!j.v||j.v===B)return;var u=new URL(location.href);if(u.searchParams.get('v')===j.v)return;u.searchParams.set('v',j.v);location.replace(u.toString())}).catch(function(){})}catch(e){}})();</script>
+<script>(function(){var B='0547ac0f2e';try{fetch('admin-version.json?t='+Date.now(),{cache:'no-store'}).then(function(r){return r.ok?r.json():null}).then(function(j){if(!j||!j.v||j.v===B)return;var u=new URL(location.href);if(u.searchParams.get('v')===j.v)return;u.searchParams.set('v',j.v);location.replace(u.toString())}).catch(function(){})}catch(e){}})();</script>
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <meta name="robots" content="noindex,nofollow">
@@ -74,16 +74,22 @@ main{padding:10px 16px}
 .amemo::before{content:'📝 '}
 .inv{margin-top:4px;font-size:14px;font-weight:700;color:var(--ok)}
 .next{display:flex;gap:6px;padding:0 12px 10px}
-.next button{flex:1;min-height:46px;border:0;border-radius:12px;font-size:16px;font-weight:900;color:#fff}
+.next button{flex:1;min-height:40px;border:0;border-radius:10px;font-size:14px;font-weight:900;color:#fff}   /* 2026-11-25 요청자 '글자·버튼 너무 커' → 46→40px, 16→14px */
 .n0{background:var(--s1)}.n1{background:var(--s2)}.n2{background:var(--s3)}.n3{background:var(--s4)}.n4{background:var(--pk)}
 .next button:disabled{opacity:.55}
 .chip.task{border-color:#e0c800}
+.next .wstep{flex:9;min-width:0;min-height:40px;position:relative;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:0;padding:2px 20px 2px 6px;border-radius:10px;border:1.5px solid #d9d2c3;background:#fff;color:#1d1a2b;line-height:1.2;text-align:center}
+.wstep .ws-sub{font-size:10px;font-weight:700;color:#888;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%;line-height:1.15}.wstep .ws-main{font-size:12.5px;font-weight:900;white-space:nowrap;line-height:1.25}
+.wstep.s0 .ws-sub{visibility:hidden}.wstep.s0{padding-right:6px}
+.wstep.s1{background:#FFFDF0;border-color:#e0c800}.wstep.s2{background:#F0F7FF;border-color:#1d4ed8}.wstep.s3{background:#FEE500;border-color:#e0c800}.wstep.s3 .ws-sub{color:#5a5000;letter-spacing:-.5px}
+@media(max-width:340px){.wstep .ws-sub{font-size:9.5px;letter-spacing:-.5px}.wstep .ws-main{font-size:12px;letter-spacing:-.3px}.next button{font-size:13px}}
+.wstep .ws-back{position:absolute;right:2px;top:50%;transform:translateY(-50%);width:18px;height:26px;display:flex;align-items:center;justify-content:center;font-size:15px;font-weight:900;color:#8a849c;border-radius:6px}
 .fl.pos{background:#f1eff5;color:#8a849c;border:1px solid #ddd8e6;cursor:pointer}.fl.pos.on{background:#e8f1ff;color:#1d4ed8;border-color:#1d4ed8}
 .nisec{border:2px solid var(--pk)}.niday{margin:10px 0 4px;font-weight:900;font-size:15px;color:var(--pk)}.nirow{display:flex;gap:10px;padding:8px 0;border-top:1px solid var(--line)}.nipic{flex:none;width:64px;height:64px;border-radius:10px;background:#ece4d2 center/cover no-repeat;display:block}.nib{flex:1;min-width:0;display:flex;flex-direction:column;gap:2px}.nib b{font-size:15px;line-height:1.35}.nib .ps{font-size:13px}.nip{font-size:14px}.nib .fl{align-self:flex-start}
 .pohd{margin-bottom:10px}.pohd .ps{margin:0 0 8px;font-size:14px;color:var(--sub)}.pochips{display:flex;gap:6px;margin-bottom:8px}.pochips button{flex:1;min-height:40px;border:2px solid var(--line);border-radius:999px;background:#fff;font-weight:800;font-size:15px}.pochips button.on{background:var(--ink);color:#fff;border-color:var(--ink)}
 .pocard{background:var(--card);border:2px solid var(--line);border-radius:16px;padding:12px;margin-bottom:10px}.pobtm{display:flex;justify-content:space-between;gap:6px;flex-wrap:wrap;margin-top:8px;font-size:14px}.pobtm .lnk{background:none;border:0;color:#1d4ed8;font-weight:800;padding:6px 0}.poprev img{width:100%;margin-top:8px;border-radius:12px;border:1px solid var(--line)}
 .imgbtns{display:flex;gap:8px;margin-top:10px}.imgbtns .btn{flex:1;min-width:0;min-height:52px;font-size:15px;line-height:1.2;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:6px 4px}.imgbtns small{font-size:12px;font-weight:700;color:var(--sub)}
-.next .nmain{flex:6;min-width:0}
+.next .nmain{flex:11;min-width:0}
 .next button.ntc{flex:4;min-width:0;padding:2px 4px;letter-spacing:-.3px;background:#fff;color:#5d5872;border:1.5px solid #d9d2c3;font-size:14px;line-height:1.2;font-weight:800;white-space:normal;word-break:keep-all}
 .next button.ntc{display:flex;align-items:center;justify-content:center;gap:6px;text-align:left}.ntc .cb{flex:none;width:22px;height:22px;border:2.5px solid #8a849c;border-radius:6px;background:#fff;display:inline-flex;align-items:center;justify-content:center;font-size:16px;font-weight:900;line-height:1;color:#fff}.next button.ntc.on{background:#FEE500;border-color:#e0c800;color:#191919}.next button.ntc.on .cb{background:#191919;border-color:#191919;color:#FEE500}   /* 안내완료 토글 (2026-11-25): 미체크는 흐리게 → 오터치 방지 */
 .next button.ntc.on{background:#FEE500;color:#191919;border-color:#e0c800;font-weight:900}
@@ -327,11 +333,11 @@ function packOf(u){return Number((String(u).match(/(\d+)\s*(?:EA|개|입|pcs)/i)
 let SHIPF='';
 const shipB=o=>{const t=o.shipNow||o.shipType||'';return /혼합/.test(t)?'<span class="fl mix">🔀 혼합</span>':/예약/.test(t)?'<span class="fl pre">🗓️ 예약대기</span>':t?'<span class="fl now">⚡ 바로발송</span>':''};
 const itemTag=t=>t.fast==null?'':`<span class="stg ${t.fast?'now':'pre'}">${t.fast?'바로발송':'예약'+(t.eta?'·'+esc(String(t.eta).replace(/\s+/g,'')):'')}</span>`;
-const TASK_CHAT='방개설 미완료',TASK_PO='발주서 미전송',needChat=o=>o.status!==CANCEL&&!o.chatOpened,needPo=o=>o.status!==CANCEL&&!o.poSent;   /* 아직 안 한 일만 (2026-11-25) */
-function chips(){const L=['전체',TASK_CHAT,TASK_PO].concat(STAGES,CANCEL);const nNow=S.orders.filter(o=>o.status!==CANCEL&&o.status!==STAGES[5]&&/^바로/.test(o.shipNow||'')).length;
-  $('chips').innerHTML=L.map(s=>`<button type="button" class="chip${s===F?' on':''}${s===TASK_CHAT||s===TASK_PO?' task':''}" data-f="${esc(s)}">${s===TASK_CHAT?'💬 ':s===TASK_PO?'📄 ':''}${esc(s)}<b>${s===TASK_CHAT?S.orders.filter(needChat).length:s===TASK_PO?S.orders.filter(needPo).length:(S.counts[s]||0)}</b></button>`).join('')+
+const TASK_WS='안내 미완료',needWs=o=>o.status!==CANCEL&&(o.workStep||0)<3,TASK_CHAT='방개설 미완료',TASK_PO='발주서 미전송',needChat=o=>o.status!==CANCEL&&!o.chatOpened,needPo=o=>o.status!==CANCEL&&!o.poSent;   /* 아직 안 한 일만 (2026-11-25) */
+function chips(){const L=['전체',TASK_WS,TASK_CHAT,TASK_PO].concat(STAGES,CANCEL);const nNow=S.orders.filter(o=>o.status!==CANCEL&&o.status!==STAGES[5]&&/^바로/.test(o.shipNow||'')).length;
+  $('chips').innerHTML=L.map(s=>`<button type="button" class="chip${s===F?' on':''}${s===TASK_CHAT||s===TASK_PO||s===TASK_WS?' task':''}" data-f="${esc(s)}">${s===TASK_WS?'📝 ':s===TASK_CHAT?'💬 ':s===TASK_PO?'📄 ':''}${esc(s)}<b>${s===TASK_WS?S.orders.filter(needWs).length:s===TASK_CHAT?S.orders.filter(needChat).length:s===TASK_PO?S.orders.filter(needPo).length:(S.counts[s]||0)}</b></button>`).join('')+
   `<button type="button" class="chip shipf${SHIPF==='now'?' on':''}" data-shipf="now">⚡ 바로발송만<b>${nNow}</b></button>`}
-function match(o){if(F===TASK_CHAT){if(!needChat(o))return false}else if(F===TASK_PO){if(!needPo(o))return false}else if(F!=='전체'&&o.status!==F)return false;if(SHIPF==='now'&&!/^바로/.test(o.shipNow||''))return false;if(!Q)return true;const q=Q.replace(/\s/g,'').toLowerCase();return [o.shop,o.who,o.po,o.tel.replace(/\D/g,'').slice(-4),o.tel.replace(/\D/g,'')].some(x=>String(x).replace(/\s/g,'').toLowerCase().includes(q))}
+function match(o){if(F===TASK_WS){if(!needWs(o))return false}else if(F===TASK_CHAT){if(!needChat(o))return false}else if(F===TASK_PO){if(!needPo(o))return false}else if(F!=='전체'&&o.status!==F)return false;if(SHIPF==='now'&&!/^바로/.test(o.shipNow||''))return false;if(!Q)return true;const q=Q.replace(/\s/g,'').toLowerCase();return [o.shop,o.who,o.po,o.tel.replace(/\D/g,'').slice(-4),o.tel.replace(/\D/g,'')].some(x=>String(x).replace(/\s/g,'').toLowerCase().includes(q))}
 /* 주문일로부터 며칠 지났는지 (한국 날짜 기준) */
 const kday=t=>Math.floor((t+9*3600e3)/864e5);
 function unpaidDays(o){return o.status===STAGES[0]&&o.ts?kday(Date.now())-kday(o.ts):0}
@@ -339,7 +345,7 @@ function card(o){
   const i=sIdx(o.status),first=nm((o.items[0]||{}).n),dn=unpaidDays(o);
   const flags=shipB(o)+(o.status!==CANCEL?`<span class="fl pos${o.poSent?' on':''}" data-posent="${esc(o.po)}" role="button" tabindex="0" title="누르면 발주서 전송 체크/해제">📄 발주서 ${o.poSent?'전송됨':'미전송'}</span>`:'')+(o.card?`<span class="fl card">💳 법인카드 요청${o.payLink?' · 링크 저장됨':''}</span>`:'')+(o.route==='카톡'?'<span class="fl kk">💬 카톡</span>':'')+(o.coupon?`<span class="fl cp">🎟 ${esc(o.coupon)}</span>`:'')+(o.pgType==='PG_CARD'?`<span class="fl card">카드PG · ${esc(o.pgStatus||'')}</span>`:'')+(o.partial?'<span class="fl red">부분발송</span>':'')+(dn>=2&&!o.card?`<span class="fl warn">미입금 D+${dn}일</span>`:'');
   const mainBtn=i>=0&&i<5?`<button type="button" class="n${i} nmain" data-next="${esc(o.po)}">${NEXT_LABEL[i]}</button>`:'';
-  const ntcBtn=o.status!==CANCEL?`<button type="button" class="ntc${o.chatOpened?' on':''}" data-ntc="${esc(o.po)}" aria-pressed="${o.chatOpened?'true':'false'}" title="${esc(o.noticeAt||'고객 카톡방을 만들었으면 눌러 표시')}">${ntcLbl(o.chatOpened)}</button>`:'';
+  const ntcBtn=o.status!==CANCEL?wsBtn(o):'';   /* 오른쪽 = 진행 스텝 버튼 (카톡방 개설 → 주문 체크(안내) → 발주서 전달) */
   const nextBtn=mainBtn||ntcBtn?`<div class="next">${mainBtn}${ntcBtn}</div>`:'';
   return `<article class="card" id="c-${esc(o.po)}">
     <button type="button" class="hd" data-open="${esc(o.po)}" aria-label="${esc(o.shop)} 주문 자세히 보기">
@@ -371,12 +377,24 @@ function toggleNotice(po,btn){
 }
 /* 📄 발주서 전송 체크 (2026-11-25): 카드 뱃지 눌러 수동 토글 · 발주서 탭 PDF 받으면 자동 체크 → 시트 46열 발주서전송여부 TRUE/FALSE */
 function repaintOrd(){if(TAB==='ord')renderOrders()}
+/* 진행 스텝 버튼 (2026-11-25 요청자): 위 작은 글씨 = 끝난 단계, 아래 큰 글씨 = 지금 할 일. 누르면 다음 단계, ↺ = 한 칸 되돌리기.
+   서버 adminSetStep → 시트 '진행스텝' 0~3 + 카톡방개설여부(1↑)·발주서전송여부(3) 같이 저장 */
+const WS=[['1/3 단계','☐ 카톡방 개설'],['카톡방 개설 (✓)','☐ 주문 체크(안내)'],['주문 체크(안내) (✓)','☐ 발주서 전달'],['카톡·주문체크·발주서 (✓)','✅ 발주서 전달 완료']];
+function wsBtn(o){const n=Math.max(0,Math.min(3,o.workStep||0)),P=esc(o.po);
+  return `<button type="button" class="wstep s${n}" data-wstep="${P}" aria-label="${esc(WS[n][1].replace(/^[☐✅] /,''))}"><span class="ws-sub">${WS[n][0]}</span><span class="ws-main">${WS[n][1]}</span>${n?`<span class="ws-back" data-wback="${P}" role="button" aria-label="한 단계 되돌리기">↺</span>`:''}</button>`}
+function setWorkStep(po,n){
+  const o=S.orders.find(x=>x.po===po);if(!o||NTC_BUSY['w'+po])return;n=Math.max(0,Math.min(3,n));
+  const prev={w:o.workStep||0,c:o.chatOpened,p:o.poSent};if(n===prev.w)return;
+  o.workStep=n;o.chatOpened=o.noticeSent=n>=1;o.poSent=n>=3;repaintOrd();NTC_BUSY['w'+po]=1;
+  call('adminSetStep',{po,step:n}).then(r=>{o.workStep=r.workStep;o.chatOpened=o.noticeSent=r.chatOpened;o.poSent=r.poSent;repaintOrd();keep.set('pb_sum',S);toast(`${o.shop} · ${WS[n][1].replace(/^[☐] /,'')}${n<prev.w?' (되돌림)':''}`)})
+    .catch(x=>{o.workStep=prev.w;o.chatOpened=o.noticeSent=prev.c;o.poSent=prev.p;repaintOrd();toast(x.message)}).finally(()=>{delete NTC_BUSY['w'+po]});
+}
 function setPoSent(po,on){
   const o=S.orders.find(x=>x.po===po);if(!o||NTC_BUSY['p'+po])return Promise.resolve();
   if(on==null)on=!o.poSent;if(on===!!o.poSent)return Promise.resolve();
-  o.poSent=on;repaintOrd();NTC_BUSY['p'+po]=1;
-  return call('adminSetNotice',{po,on,kind:'po'}).then(r=>{o.poSent=r.poSent;repaintOrd();keep.set('pb_sum',S);toast(`${o.shop} · 발주서 ${on?'전송됨':'미전송'}으로 표시`)})
-    .catch(x=>{o.poSent=!on;repaintOrd();toast(x.message)}).finally(()=>{delete NTC_BUSY['p'+po]});
+  const prevWs=o.workStep||0;o.poSent=on;o.workStep=on?3:Math.min(prevWs,o.chatOpened?2:0);repaintOrd();NTC_BUSY['p'+po]=1;
+  return call('adminSetNotice',{po,on,kind:'po'}).then(r=>{o.poSent=r.poSent;if(r.workStep!=null)o.workStep=r.workStep;repaintOrd();keep.set('pb_sum',S);toast(`${o.shop} · 발주서 ${on?'전송됨':'미전송'}으로 표시`)})
+    .catch(x=>{o.poSent=!on;o.workStep=prevWs;repaintOrd();toast(x.message)}).finally(()=>{delete NTC_BUSY['p'+po]});
 }
 /* 단계 바꾸기 (되돌리기 지원) */
 async function setStage(po,status,extra,btn){
@@ -1299,6 +1317,8 @@ document.addEventListener('click',e=>{
   const sf=e.target.closest('[data-shipf]');if(sf){SHIPF=SHIPF===sf.dataset.shipf?'':sf.dataset.shipf;renderOrders();scrollTo(0,0);return}
   const ss=e.target.closest('[data-ss]');if(ss){const w=ss.closest('.shipset'),c=w.dataset.sc,type=w.querySelector('[data-st]').value,eta=w.querySelector('[data-eta]').value.trim();ss.disabled=true;ss.textContent='저장 중…';
     call('adminSetShipping',{code:c,type,eta}).then(r=>{const p=STK.products.find(x=>x.c===c);if(p){p.fast=r.fast;p.eta=r.eta}toast(`${c} → ${r.fast?'⚡ 바로발송':'🗓️ 예약발송'+(r.eta?' ('+r.eta+')':'')} 저장 (주문 페이지는 최대 3분 뒤 반영)`);load()}).catch(x=>toast(x.message)).finally(()=>{ss.disabled=false;ss.textContent='저장'});return}
+  const wb=e.target.closest('[data-wback]');if(wb){e.stopPropagation();const o=S.orders.find(x=>x.po===wb.dataset.wback);if(o)setWorkStep(o.po,(o.workStep||0)-1);return}
+  const ws=e.target.closest('[data-wstep]');if(ws){const o=S.orders.find(x=>x.po===ws.dataset.wstep);if(o){if((o.workStep||0)>=3)toast('모든 안내가 끝난 주문이에요. 되돌리려면 ↺');else setWorkStep(o.po,(o.workStep||0)+1)}return}
   const nt=e.target.closest('[data-ntc]');if(nt){toggleNotice(nt.dataset.ntc,nt);return}
   const ps=e.target.closest('[data-posent]');if(ps){e.preventDefault();e.stopPropagation();setPoSent(ps.dataset.posent);return}
   const t=e.target.closest('[data-tab],[data-f],[data-next],[data-open],[data-agg],[data-inv]');if(!t)return;
