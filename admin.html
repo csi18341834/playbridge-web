@@ -5,7 +5,7 @@
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<script>(function(){var B='16aa92b751';try{fetch('admin-version.json?t='+Date.now(),{cache:'no-store'}).then(function(r){return r.ok?r.json():null}).then(function(j){if(!j||!j.v||j.v===B)return;var u=new URL(location.href);if(u.searchParams.get('v')===j.v)return;u.searchParams.set('v',j.v);location.replace(u.toString())}).catch(function(){})}catch(e){}})();</script>
+<script>(function(){var B='bd4e2dc70f';try{fetch('admin-version.json?t='+Date.now(),{cache:'no-store'}).then(function(r){return r.ok?r.json():null}).then(function(j){if(!j||!j.v||j.v===B)return;var u=new URL(location.href);if(u.searchParams.get('v')===j.v)return;u.searchParams.set('v',j.v);location.replace(u.toString())}).catch(function(){})}catch(e){}})();</script>
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <meta name="robots" content="noindex,nofollow">
@@ -510,7 +510,7 @@ document.addEventListener('click',async e=>{
   else if(t.dataset.porep){t.disabled=true;try{const r=await call('adminReplyMessage',{po:o.po});copy(r.replyMessage,'입금 안내문을 복사했습니다. 카톡에 붙여넣어 주세요')}catch(x){toast(x.message)}finally{t.disabled=false}}
 });
 /* 💰 마진 계산 (2026-11-25 요청자): 1688 위안 → 국내 원가(위안 × 계수) · 제안 공급가(개당 VAT별도) → 개당/팩 마진·마진율·판정 + 카톡 양식 복사. 서버 없음, 입력값은 이 기기에 기억 */
-const MC={name:'',yuan:'',pack:12,k:250,price:''};
+const MC={name:'',yuan:'',pack:12,k:250,price:'',buf:1000};
 try{Object.assign(MC,JSON.parse(localStorage.getItem('pb_mc')||'{}'))}catch(e){}
 function mcOpen(){
   openPo='';$('pT').innerHTML='💰 마진 계산 <small style="font-size:13px;color:var(--sub)">1688 매입가 → 원가·마진</small>';
@@ -521,35 +521,41 @@ function mcOpen(){
     <label class="mcl" for="mcPack">1팩 구성 개수 (개입)</label><input class="f" id="mcPack" type="text" inputmode="numeric" value="${esc(MC.pack)}" autocomplete="off">
     <div class="mcq" id="mcPackQ">${[1,4,10,12].map(n=>`<button type="button" data-mcp="${n}">${n}개</button>`).join('')}</div>
     <span class="mcl">물류·환율 원가 기준</span><div class="mcq" id="mcK">${K.map(([k,l])=>`<button type="button" data-mck="${k}">${l}</button>`).join('')}</div>
+    <label class="mcl" for="mcBuf">국내 포장·무료배송 버퍼 (팩당, 원)</label><input class="f" id="mcBuf" type="text" inputmode="numeric" value="${esc(MC.buf)}" autocomplete="off">
     <label class="mcl" for="mcPrice">제안 공급가 (개당, 원 / VAT별도)</label><input class="f" id="mcPrice" type="text" inputmode="numeric" placeholder="예: 6500" value="${esc(MC.price)}" autocomplete="off">
-    <div class="mcq"><button type="button" data-mcr="370">35% 마진가 적용 (×370)</button><button type="button" data-mcr="400">38% 마진가 적용 (×400)</button></div>
+    <div class="mcq"><button type="button" data-mcr="370">35% 표준 마진가 (×370)</button><button type="button" data-mcr="400">38% 고마진가 (×400)</button></div>
     <div class="mcres" id="mcRes"></div>
     <button class="btn w pk" type="button" id="mcCp" style="margin-top:12px">📋 카톡 단가체크 양식 복사</button>
-    <p class="ps" style="margin-top:8px">원가 = 위안 × 기준(250원 = 1위안 200원 × 부대비용 1.25). 마진율 = (공급가 − 원가) ÷ 공급가, VAT·카드수수료 제외.</p></div>`;
+    <p class="ps" style="margin-top:8px">수입 원가 = 위안 × 기준(250원 = 1위안 200원 × 부대비용 1.25). 1팩 총원가 = 수입 원가 × 개수 + 포장·배송 버퍼. 마진율 = 순이익 ÷ 1팩 공급가 (VAT·카드수수료 제외).</p></div>`;
   openPane();
   const B=$('pB'),num=v=>parseFloat(String(v).replace(/[^0-9.]/g,''))||0;
   const save=()=>{try{localStorage.setItem('pb_mc',JSON.stringify(MC))}catch(e){}};
   const calc=()=>{
-    MC.name=$('mcName').value.trim();MC.yuan=$('mcYuan').value.trim();MC.pack=$('mcPack').value.trim();MC.price=$('mcPrice').value.trim();save();
+    MC.name=$('mcName').value.trim();MC.yuan=$('mcYuan').value.trim();MC.pack=$('mcPack').value.trim();MC.price=$('mcPrice').value.trim();MC.buf=$('mcBuf').value.trim();save();
     B.querySelectorAll('[data-mcp]').forEach(b=>b.classList.toggle('on',String(num(MC.pack))===b.dataset.mcp));
     B.querySelectorAll('[data-mck]').forEach(b=>b.classList.toggle('on',+b.dataset.mck===+MC.k));
-    const y=num(MC.yuan),pk=Math.max(1,Math.round(num(MC.pack))||1),pr=Math.round(num(MC.price)),cost=Math.round(y*MC.k),m=pr-cost,rate=pr?m/pr*100:0;
-    const R={y,pk,pr,cost,packCost:cost*pk,packPr:pr*pk,packInc:Math.round(pr*pk*1.1),m,packM:m*pk,rate};MC._r=R;
+    /* 안전식: 1팩 총원가 = 수입원가×개수 + 포장·배송 버퍼, 순이익 = 1팩 공급가 − 총원가, 마진율 = 순이익 ÷ 1팩 공급가, 손익분기 개당가 = 총원가÷개수 (100원 올림) */
+    const y=num(MC.yuan),pk=Math.max(1,Math.round(num(MC.pack))||1),pr=Math.round(num(MC.price)),buf=Math.round(num(MC.buf)),cost=Math.round(y*MC.k);
+    const packCost=cost*pk+buf,packPr=pr*pk,packM=packPr-packCost,rate=packPr?packM/packPr*100:0,be=Math.ceil(packCost/pk/100)*100;
+    const R={y,pk,pr,buf,cost,unitTot:Math.round(packCost/pk),packCost,packPr,packInc:Math.round(packPr*1.1),packM,m:Math.round(packM/pk),rate,be};MC._r=R;
     if(!y||!pr){$('mcRes').innerHTML=`<div class="ps">매입가(위안)와 제안 공급가를 넣으면 바로 계산돼요${y?` · 예상 원가 개당 ${won(cost)}`:''}</div>`;return}
-    const st=rate>=30?['ok','✅ 적정 마진 (출시 추천)']:rate>=15?['mid','⚠️ 저마진 주의 (미끼상품용)']:['bad','🚨 역마진 위험! (단가 상향 필수)'];
+    const st=rate>=30?['ok','✅ 안전 마진 (출시 추천)']:rate>=15?['mid','⚠️ 저마진 주의 (미끼상품만 권장)']:['bad','🚨 역마진 위험! (단가 상향 필수)'];
     const sg=n=>(n>=0?'+':'−')+won(Math.abs(n));
-    $('mcRes').innerHTML=`<div class="kv"><span>예상 국내 원가</span><span>개당 <b>${won(cost)}</b> · 1팩 ${won(R.packCost)}</span></div>
-      <div class="kv"><span>제안 1팩 공급가 <small>(VAT별도)</small></span><span><b>${won(R.packPr)}</b></span></div>
+    $('mcRes').innerHTML=`${y<3?`<div class="mcbadge mid" style="margin:0 0 10px;font-size:14px">⚠️ 3위안 미만 초저가: 국내 핸들링 비용 때문에 개당 최소 500원 이상으로 잡으세요</div>`:''}
+      <div class="kv"><span>수입 원가</span><span>개당 <b>${won(cost)}</b></span></div>
+      <div class="kv"><span>1팩 총원가 <small>(+포장 ${won(buf)})</small></span><span><b>${won(R.packCost)}</b></span></div>
+      <div class="kv"><span>1팩 공급가 <small>(VAT별도)</small></span><span><b>${won(R.packPr)}</b></span></div>
       <div class="kv"><span>VAT 포함 입금액</span><span>${won(R.packInc)}</span></div>
-      <div class="kv"><span>예상 마진</span><span>개당 <b>${sg(m)}</b> · 1팩 <b>${sg(R.packM)}</b></span></div>
-      <div class="kv t"><span>마진율</span><span>${rate.toFixed(1)}%</span></div><div class="mcbadge ${st[0]}">${st[1]}</div>`;
+      <div class="kv"><span>실질 순이익</span><span>1팩 <b>${sg(R.packM)}</b> · 개당 ${sg(R.m)}</span></div>
+      <div class="kv"><span>손익분기 개당가</span><span><b>${won(be)}</b> <small>미만이면 적자</small></span></div>
+      <div class="kv t"><span>실질 마진율</span><span>${rate.toFixed(1)}%</span></div><div class="mcbadge ${st[0]}">${st[1]}</div>`;
   };
-  ['mcName','mcYuan','mcPack','mcPrice'].forEach(id=>$(id).addEventListener('input',calc));
+  ['mcName','mcYuan','mcPack','mcPrice','mcBuf'].forEach(id=>$(id).addEventListener('input',calc));
   B.querySelectorAll('[data-mcp]').forEach(b=>b.addEventListener('click',()=>{$('mcPack').value=b.dataset.mcp;calc()}));
   B.querySelectorAll('[data-mck]').forEach(b=>b.addEventListener('click',()=>{MC.k=+b.dataset.mck;calc()}));
   B.querySelectorAll('[data-mcr]').forEach(b=>b.addEventListener('click',()=>{const y=num($('mcYuan').value);if(!y){toast('먼저 1688 매입가(위안)를 넣어 주세요');$('mcYuan').focus();return}$('mcPrice').value=Math.round(y*(+b.dataset.mcr)/100)*100;calc()}));
   $('mcCp').addEventListener('click',()=>{const R=MC._r||{};if(!R.y||!R.pr){toast('매입가와 공급가를 먼저 넣어 주세요');return}
-    copy(['[단가 체크 요청]',`• 상품명: ${MC.name||'미입력'}`,`• 현지 매입가: ${R.y} 위안 / 개`,`• 1팩 구성: ${R.pk}개입`,`• 예상 원가: 개당 ${won(R.cost)} / 1팩 ${won(R.packCost)}`,`• 제안 공급가(VAT별도): 개당 ${won(R.pr)} / 1팩 ${won(R.packPr)}`,`• 예상 마진: 팩당 ${won(R.packM)} (마진율 ${R.rate.toFixed(1)}%)`].join('\n'),'단가 체크 양식이 복사되었습니다!')});
+    copy(['[단가 체크 요청]',`• 상품명: ${MC.name||'미입력'}`,`• 현지 매입가: ${R.y} 위안 / 개`,`• 1팩 구성: ${R.pk}개입`,`• 총 원가(포장버퍼 포함): 개당 ${won(R.unitTot)} / 1팩 ${won(R.packCost)}`,`• 제안 공급가(VAT별도): 개당 ${won(R.pr)} / 1팩 ${won(R.packPr)}`,`• 실질 순이익: 팩당 ${won(R.packM)} (마진율 ${R.rate.toFixed(1)}%)`].join('\n'),'단가 체크 양식이 복사되었습니다!')});
   calc();
 }
 function detail(po,focusInv){
