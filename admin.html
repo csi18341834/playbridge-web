@@ -5,7 +5,7 @@
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<script>(function(){var B='bfda8b7dba';try{fetch('admin-version.json?t='+Date.now(),{cache:'no-store'}).then(function(r){return r.ok?r.json():null}).then(function(j){if(!j||!j.v||j.v===B)return;var u=new URL(location.href);if(u.searchParams.get('v')===j.v)return;u.searchParams.set('v',j.v);location.replace(u.toString())}).catch(function(){})}catch(e){}})();</script>
+<script>(function(){var B='b4401c51be';try{fetch('admin-version.json?t='+Date.now(),{cache:'no-store'}).then(function(r){return r.ok?r.json():null}).then(function(j){if(!j||!j.v||j.v===B)return;var u=new URL(location.href);if(u.searchParams.get('v')===j.v)return;u.searchParams.set('v',j.v);location.replace(u.toString())}).catch(function(){})}catch(e){}})();</script>
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <meta name="robots" content="noindex,nofollow">
@@ -230,6 +230,11 @@ textarea{width:100%;min-height:84px;border:2px solid var(--line);border-radius:1
 .txf{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:8px}.txf input{width:100%;height:auto;flex:none;margin:0;min-height:44px;border:2px solid var(--line);border-radius:10px;font-size:16px;padding:0 8px;min-width:0}.txf .w2{grid-column:1/-1}.txf .btn{min-height:44px}
 .txbar{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:8px}.txbar select,.txbar input{min-height:44px;border:2px solid var(--line);border-radius:10px;font-size:16px;padding:0 8px;background:#fff;min-width:0}.txact{display:grid;gap:8px}
 .shipset{display:grid;grid-template-columns:118px 1fr 58px;gap:6px;margin:4px 0 12px}.shipset select,.shipset input{min-height:40px;border:2px solid var(--line);border-radius:10px;font-size:14px;padding:0 6px;min-width:0;background:#fff}.shipset input[hidden]{display:block;visibility:hidden}.shipset .btn{min-height:40px;padding:0 6px;font-size:14px}
+.byl{margin-top:8px;display:flex;flex-direction:column;gap:5px}
+.byr{display:grid;grid-template-columns:1fr auto;gap:0 8px;text-align:left;width:100%;background:#fafafa;border:1px solid #eee;border-radius:10px;padding:7px 10px;font-size:14px;color:inherit}
+.byr .bs{font-weight:800;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.byr .bs small{font-weight:600;color:#888}.byr .bs .op{color:#d81b60}
+.byr .bq{font-weight:900;white-space:nowrap}.byr .bt{grid-column:1/-1;font-size:12px;color:#888}
+.byr.done{background:#effaf1;border-color:#bfe8c8}.byr.done .bt{color:#1a7f37;font-weight:800}
 </style>
 </head>
 <body>
@@ -674,17 +679,22 @@ function shipMsg(o){
 /* ---------- 1688 발주·출고 품목합계 ---------- */
 function renderAgg(){
   const buy=S.orders.filter(o=>o.status===STAGES[1]),pick=S.orders.filter(o=>o.status===STAGES[4]),live=S.orders.filter(o=>o.status!==CANCEL&&o.status!==STAGES[5]);
-  let h=`<div class="seg"><button type="button" data-agg="buy" class="${AGG==='buy'?'on':''}">🇨🇳 오늘 1688 발주<br><small>입금확인(발주전) ${buy.length}건</small></button><button type="button" data-agg="kr" class="${AGG==='kr'?'on':''}">🇰🇷 한국 창고 재고<br><small>바로발송 상품</small></button><button type="button" data-agg="pick" class="${AGG==='pick'?'on':''}">국내 포장용<br><small>한국도착(통관) ${pick.length}건</small></button><button type="button" data-agg="all" class="${AGG==='all'?'on':''}">전체 SKU 합계<br><small>진행 중 ${live.length}건</small></button></div>`;
+  let h=`<div class="seg"><button type="button" data-agg="buy" class="${AGG==='buy'?'on':''}">🇨🇳 오늘 1688 발주<br><small>입금확인(발주전) ${buy.length}건</small></button><button type="button" data-agg="kr" class="${AGG==='kr'?'on':''}">🇰🇷 한국 창고 재고<br><small>바로발송 상품</small></button><button type="button" data-agg="pick" class="${AGG==='pick'?'on':''}">국내 포장용<br><small>한국도착(통관) ${pick.length}건</small></button><button type="button" data-agg="all" class="${AGG==='all'?'on':''}">상품별 주문자<br><small>진행 중 ${live.length}건</small></button></div>`;
   AGGHEAD=h;if(AGG==='buy'||AGG==='kr'){renderBuy();return}   /* 1688 발주용 = 주문서 기준 오늘 1688 주문 목록 (2026-11-24 합침) */
   if(AGG==='all'){   /* 진행 중(취소·국내발송완료 뺀) 모든 주문의 상품코드별 팩 합계 — 사입 참고용 */
-    const m={};live.forEach(o=>o.items.forEach(t=>{const k=t.c||nm(t.n).main;if(!m[k])m[k]={c:t.c,name:nm(t.n).main,pack:packOf(t.unit),q:0,st:{}};m[k].q+=Number(t.q)||0;m[k].st[o.status]=(m[k].st[o.status]||0)+(Number(t.q)||0)}));
+    const m={};live.forEach(o=>o.items.forEach(t=>{const k=t.c||nm(t.n).main;if(!m[k])m[k]={c:t.c,name:nm(t.n).main,pack:packOf(t.unit),q:0,st:{},by:[]};m[k].q+=Number(t.q)||0;m[k].st[o.status]=(m[k].st[o.status]||0)+(Number(t.q)||0)}));
+    /* 상품마다 누가 주문했는지·판매 완료인지 (2026-11-25 요청자) — 취소만 빼고 모든 주문, 국내발송완료는 '판매완료' 표시(합계 팩에는 안 넣음) */
+    S.orders.filter(o=>o.status!==CANCEL).forEach(o=>o.items.forEach(t=>{const k=t.c||nm(t.n).main;if(!m[k])m[k]={c:t.c,name:nm(t.n).main,pack:packOf(t.unit),q:0,st:{},by:[]};
+      m[k].by.push({po:o.po,shop:o.shop||o.who,who:o.who,q:Number(t.q)||0,lab:qL(t),op:nm(t.n).op,st:o.status,d:String(o.date||'').split(' ')[0]})}));
     const L=Object.values(m).sort((a,b)=>b.q-a.q||String(a.c).localeCompare(String(b.c))),tq=L.reduce((a,b)=>a+b.q,0),tp=L.reduce((a,b)=>a+b.q*b.pack,0);
     h+=L.length?`<div class="tot"><span>SKU ${L.length}종 · 주문 ${live.length}건</span><span>${nq(tq)}팩 · ${tp.toLocaleString()}개</span></div>
-      ${L.map(a=>`<div class="agg"><div class="t"><span>${esc(a.name)}</span><b>${nq(a.q)}팩</b></div><div class="m">${esc(a.c)} · ${a.pack}개입 → <b>${(a.q*a.pack).toLocaleString()}개</b> · ${Object.keys(a.st).map(k=>esc(k)+' '+a.st[k]).join(', ')}</div></div>`).join('')}
+      ${L.map(a=>`<div class="agg"><div class="t"><span>${esc(a.name)}</span><b>${nq(a.q)}팩</b></div><div class="m">${esc(a.c)} · ${a.pack}개입 → <b>${(a.q*a.pack).toLocaleString()}개</b> · ${Object.keys(a.st).map(k=>esc(k)+' '+a.st[k]).join(', ')}</div>
+        ${a.by.length?`<div class="byl">${a.by.map(b=>`<button type="button" class="byr${b.st===STAGES[5]?' done':''}" data-po="${esc(b.po)}"><span class="bs">${esc(b.shop)}${b.who&&b.who!==b.shop?` <small>(${esc(b.who)})</small>`:''}${b.op?` <small class="op">${esc(b.op)}</small>`:''}</span><span class="bq">${esc(b.lab)}</span><span class="bt">${b.st===STAGES[5]?'판매완료':esc(b.st)}${b.d?' · '+esc(b.d):''} · ${esc(b.po.slice(-5))}</span></button>`).join('')}</div>`:''}</div>`).join('')}
       <button class="btn w ghost" type="button" id="allCp">SKU 합계 복사 (사입 참고용)</button>
       <p class="ps" style="margin-top:8px">취소·국내발송완료 주문은 빼고, 옵션(색상·사이즈)은 상품코드 하나로 합쳐 셉니다.</p>`:`<div class="empty">진행 중인 주문이 없습니다</div>`;
     $('main').innerHTML=h;
-    if($('allCp'))$('allCp').addEventListener('click',()=>copy([`[SKU별 주문 합계] ${new Date().toLocaleDateString('ko-KR')} · 진행 중 ${live.length}건`,...L.map(a=>`${a.c} ${a.name} : ${nq(a.q)}팩 (${(a.q*a.pack).toLocaleString()}개)`),`합계 ${nq(tq)}팩 / ${tp.toLocaleString()}개`].join('\n'),'SKU 합계를 복사했습니다'));
+    $('main').querySelectorAll('.byr[data-po]').forEach(b=>b.onclick=()=>detail(b.dataset.po));
+    if($('allCp'))$('allCp').addEventListener('click',()=>copy([`[SKU별 주문 합계] ${new Date().toLocaleDateString('ko-KR')} · 진행 중 ${live.length}건`,...L.map(a=>`${a.c} ${a.name} : ${nq(a.q)}팩 (${(a.q*a.pack).toLocaleString()}개)\n`+a.by.map(b=>`   - ${b.shop}${b.op?' ['+b.op+']':''} ${b.lab} (${b.st===STAGES[5]?'판매완료':b.st}${b.d?', '+b.d:''})`).join('\n')),`합계 ${nq(tq)}팩 / ${tp.toLocaleString()}개`].join('\n'),'SKU 합계를 복사했습니다'));
   }else if(AGG==='buy'){
     const m={};buy.forEach(o=>o.items.forEach(t=>{const x=nm(t.n),k=t.c+'|'+x.op;if(!m[k])m[k]={c:t.c,name:x.main,op:x.op,pa:x.pa,pack:packOf(t.unit),q:0,orders:new Set()};m[k].q+=t.q;m[k].orders.add(o.shop)}));
     const L=Object.values(m).sort((a,b)=>a.c.localeCompare(b.c)||a.op.localeCompare(b.op));
