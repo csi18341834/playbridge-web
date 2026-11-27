@@ -5,7 +5,7 @@
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<script>(function(){var B='3a95d5541c';try{fetch('admin-version.json?t='+Date.now(),{cache:'no-store'}).then(function(r){return r.ok?r.json():null}).then(function(j){if(!j||!j.v||j.v===B)return;var u=new URL(location.href);if(u.searchParams.get('v')===j.v)return;u.searchParams.set('v',j.v);location.replace(u.toString())}).catch(function(){})}catch(e){}})();</script>
+<script>(function(){var B='58d7170766';try{fetch('admin-version.json?t='+Date.now(),{cache:'no-store'}).then(function(r){return r.ok?r.json():null}).then(function(j){if(!j||!j.v||j.v===B)return;var u=new URL(location.href);if(u.searchParams.get('v')===j.v)return;u.searchParams.set('v',j.v);location.replace(u.toString())}).catch(function(){})}catch(e){}})();</script>
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <meta name="robots" content="noindex,nofollow">
@@ -283,6 +283,8 @@ const esc=s=>String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;'
 const won=n=>Number(n||0).toLocaleString('ko-KR')+'원';
 /* 개당 주문(소수 팩) 표시: 품목은 '50개', 합계는 소수 1자리 (2026-11-25) */
 const nq=n=>Number.isInteger(+n)?+n:+(+n).toFixed(1),qL=t=>t.qLabel||nq(t.q)+'팩';
+// 품목 개수: '50개' 같은 개당 주문은 그 숫자, 아니면 팩 × 1팩 개수
+const pcsN=t=>t.qLabel?(parseInt(t.qLabel,10)||0):Math.round((+t.q||0)*packOf(t.unit)),pcsL=t=>{const p=packOf(t.unit);return t.qLabel||p<2?'':`${p}개×${nq(t.q)}팩 = 총 ${pcsN(t)}개`},totPcs=o=>o.items.reduce((a,t)=>a+pcsN(t),0);
 const sIdx=s=>s===CANCEL?-1:STAGES.indexOf(s);
 const bCls=s=>s===CANCEL?'bx':'b'+Math.max(0,STAGES.indexOf(s));
 const store={get(k){try{return sessionStorage.getItem(k)}catch(e){return null}},set(k,v){try{v==null?sessionStorage.removeItem(k):sessionStorage.setItem(k,v)}catch(e){}}};
@@ -459,7 +461,7 @@ async function oiDraw(o,doc){
   let y=140;
   if(doc){info.forEach(([a,L])=>{x.fillStyle='#5d5872';x.font=`700 19px ${F}`;x.fillText(a,PAD,y+1);x.fillStyle='#1d1a2b';x.font=`600 20px ${F}`;L.forEach((l,k)=>x.fillText(l,PAD+130,y+k*30));y+=L.length*30+8});
     if(sup){x.fillStyle='#5d5872';x.font=`700 19px ${F}`;x.fillText('공급자',PAD,y+1);x.fillStyle='#1d1a2b';x.font=`600 18px ${F}`;x.fillText(wrap(sup,vW,`600 18px ${F}`)[0],PAD+130,y+1);y+=40}
-    x.fillStyle='#ece4d2';x.fillRect(PAD,y,W-PAD*2,2);y+=26}x.fillStyle='#1d1a2b';x.font=`900 24px ${F}`;x.fillText(`품목 ${o.items.length}종 · ${nq(o.packs)}팩`,PAD,y);y+=44;
+    x.fillStyle='#ece4d2';x.fillRect(PAD,y,W-PAD*2,2);y+=26}x.fillStyle='#1d1a2b';x.font=`900 24px ${F}`;x.fillText(`품목 ${o.items.length}종 · ${nq(o.packs)}팩 · 총 ${totPcs(o)}개`,PAD,y);y+=44;
   rows.forEach((r,k)=>{const im=ims[k],ix=PAD;
     x.save();x.beginPath();if(x.roundRect)x.roundRect(ix,y,TH,TH,14);else x.rect(ix,y,TH,TH);x.clip();
     if(im){const s=Math.max(TH/im.width,TH/im.height),w=im.width*s,h=im.height*s;x.drawImage(im,ix+(TH-w)/2,y+(TH-h)/2,w,h)}else{x.fillStyle='#ece4d2';x.fillRect(ix,y,TH,TH)}
@@ -467,7 +469,7 @@ async function oiDraw(o,doc){
     let ty=y,tx=ix+TH+16;x.fillStyle='#1d1a2b';x.font=`700 24px ${F}`;r.L1.forEach(l=>{x.fillText(l,tx,ty);ty+=34});
     if(r.t.fast!=null){const tag=r.t.fast?'바로발송':'예약'+(r.t.eta?' · '+r.t.eta:'');x.font=`800 17px ${F}`;const tw=x.measureText(tag).width+18;x.fillStyle=r.t.fast?'#e3f6ec':'#ece8ff';x.fillRect(tx,ty+2,tw,26);x.fillStyle=r.t.fast?'#0b7a4b':'#4b3fb5';x.fillText(tag,tx+9,ty+5);ty+=34}
     x.fillStyle='#5d5872';x.font=`500 19px ${F}`;r.L2.forEach(l=>{x.fillText(l,tx,ty);ty+=27});
-    x.textAlign='right';x.fillStyle='#1d1a2b';x.font=`900 26px ${F}`;x.fillText(qL(r.t),W-PAD,y);x.font=`700 21px ${F}`;x.fillText(won(r.t.sum),W-PAD,y+38);x.textAlign='left';
+    x.textAlign='right';x.fillStyle='#1d1a2b';x.font=`900 26px ${F}`;x.fillText(qL(r.t),W-PAD,y);let py=y+38;if(pcsL(r.t)){x.fillStyle='#5d5872';x.font=`700 17px ${F}`;x.fillText(pcsL(r.t),W-PAD,py);x.fillStyle='#1d1a2b';py+=28}x.font=`700 21px ${F}`;x.fillText(won(r.t.sum),W-PAD,py);x.textAlign='left';
     y+=r.h;if(k<rows.length-1){x.fillStyle='#ece4d2';x.fillRect(PAD,y-12,W-PAD*2,2)}});
   y+=8;x.font=`500 22px ${F}`;kv.forEach(([a,b])=>{x.fillStyle=/^할인/.test(a)?'#c00':'#1d1a2b';x.fillText(a,PAD,y);x.textAlign='right';x.fillText(b,W-PAD,y);x.textAlign='left';y+=40});
   x.fillStyle='#1d1a2b';x.fillRect(PAD,y,W-PAD*2,3);y+=16;
@@ -619,7 +621,7 @@ function detail(po,focusInv){
     <div class="cxrow">${o.status===CANCEL?`<button class="btn ghost" type="button" id="unCx">취소 되돌리기 (입금대기로)</button>`:`<button class="cxbtn" type="button" id="cx">주문 취소</button>`}</div>
     <div class="cxbox" id="cxBox" hidden><label><input type="checkbox" id="rst" checked> 재고 칸(숫자)도 ${o.status===CANCEL?'다시 차감':'되돌리기'}</label><button class="btn w" type="button" id="cxGo" style="margin-top:8px;background:#c00">${o.status===CANCEL?'되돌리기 확정':'취소 확정'}</button></div>
   </div>
-  <div class="sec"><h3>품목 ${o.items.length}종 · ${nq(o.packs)}팩</h3><ul class="items">${o.items.map(t=>{const x=nm(t.n);return `<li>${picH(t)}<span>${esc(x.main)}${itemTag(t)}${x.op?`<span class="op">${esc(x.op)}</span>`:''}${x.pa?`<span class="ps">${esc(x.pa)} · ${esc(t.unit)}</span>`:''}</span><b>${qL(t)}<br><small style="font-weight:700">${won(t.sum)}</small></b></li>`}).join('')}</ul>
+  <div class="sec"><h3>품목 ${o.items.length}종 · ${nq(o.packs)}팩 · 총 ${totPcs(o)}개</h3><ul class="items">${o.items.map(t=>{const x=nm(t.n);return `<li>${picH(t)}<span>${esc(x.main)}${itemTag(t)}${x.op?`<span class="op">${esc(x.op)}</span>`:''}${x.pa?`<span class="ps">${esc(x.pa)} · ${esc(t.unit)}</span>`:''}</span><b>${qL(t)}${pcsL(t)?`<br><small style="font-weight:700;color:#5d5872;white-space:nowrap">${pcsL(t)}</small>`:''}<br><small style="font-weight:700">${won(t.sum)}</small></b></li>`}).join('')}</ul>
     <div class="kv"><span>상품</span><span>${won(o.sub)}</span></div>${o.depName||o.depAt?`<div class="kv"><span>입금확인</span><span>${esc(o.depName||'')}${o.depAt?' · '+esc(o.depAt):''}</span></div>`:''}${o.pgType==='PG_CARD'?`<div class="kv"><span>결제수단</span><span>카드PG · ${esc(o.pgStatus||'')}${o.receipt?` · <a href="${esc(o.receipt)}" target="_blank" rel="noopener">매출전표</a>`:''}</span></div>`:''}${o.disc?`<div class="kv" style="color:#c00"><span>할인 ${esc(o.coupon)}</span><span>-${won(o.disc)}</span></div>`:''}<div class="kv"><span>배송비</span><span>${o.ship?won(o.ship):'무료'}</span></div><div class="kv t"><span>합계</span><span>${won(o.total)}</span></div>
     <div class="imgbtns"><button class="btn ghost" type="button" id="oiCp">🖼 이미지 복사<small>PC 카톡에 Ctrl+V</small></button><button class="btn ghost" type="button" id="oiSv">💾 이미지 저장·공유<small>폰 카톡에 보내기</small></button></div></div>
   ${o.memo?`<div class="req" style="margin:0 0 12px">요청사항: ${esc(o.memo)}</div>`:''}
