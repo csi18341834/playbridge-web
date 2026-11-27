@@ -5,7 +5,7 @@
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<script>(function(){var B='58d7170766';try{fetch('admin-version.json?t='+Date.now(),{cache:'no-store'}).then(function(r){return r.ok?r.json():null}).then(function(j){if(!j||!j.v||j.v===B)return;var u=new URL(location.href);if(u.searchParams.get('v')===j.v)return;u.searchParams.set('v',j.v);location.replace(u.toString())}).catch(function(){})}catch(e){}})();</script>
+<script>(function(){var B='2e3cbf9c3d';try{fetch('admin-version.json?t='+Date.now(),{cache:'no-store'}).then(function(r){return r.ok?r.json():null}).then(function(j){if(!j||!j.v||j.v===B)return;var u=new URL(location.href);if(u.searchParams.get('v')===j.v)return;u.searchParams.set('v',j.v);location.replace(u.toString())}).catch(function(){})}catch(e){}})();</script>
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <meta name="robots" content="noindex,nofollow">
@@ -447,7 +447,7 @@ async function oiDraw(o,doc){
   const SI=S.shopInfo||{},vW=W-PAD*2-130;
   const info=doc?[['받는 분',[o.shop,o.who&&o.who!==o.shop?o.who:''].filter(Boolean).join(' · ')+' 대표님'],['연락처',o.tel||'-'],['배송지',o.addr||'-'],['진행 단계',o.status]].map(([a,b])=>[a,wrap(b,vW,`600 20px ${F}`)]):[];
   const sup=doc?[SI.biz,SI.ceo?'대표 '+SI.ceo:'',SI.bizNo?'사업자 '+SI.bizNo:''].filter(Boolean).join(' · '):'';
-  const bank=doc&&o.status===STAGES[0]&&!o.card&&SI.acct;
+  const bank=o.status===STAGES[0]&&!o.card&&SI.acct;
   const infoH=doc?info.reduce((a,r)=>a+r[1].length*30+8,0)+(sup?40:0)+28:0;
   const H=150+infoH+rows.reduce((a,r)=>a+r.h,0)+20+kv.length*40+80+(memo?60:0)+(bank?130:0)+60;
   c.width=W*SC;c.height=H*SC;x.scale(SC,SC);
@@ -475,7 +475,7 @@ async function oiDraw(o,doc){
   x.fillStyle='#1d1a2b';x.fillRect(PAD,y,W-PAD*2,3);y+=16;
   x.font=`900 30px ${F}`;x.fillText('합계',PAD,y);x.textAlign='right';x.fillText(won(o.total),W-PAD,y);x.font=`600 16px ${F}`;x.fillStyle='#5d5872';x.fillText('VAT·배송비 포함',W-PAD,y+40);x.textAlign='left';y+=72;
   if(bank){x.fillStyle='#e8f1ff';x.fillRect(PAD,y,W-PAD*2,114);x.fillStyle='#1d4ed8';x.font=`900 20px ${F}`;x.fillText('입금 계좌',PAD+16,y+14);
-    x.fillStyle='#1d1a2b';x.font=`800 22px ${F}`;x.fillText(wrap(`${SI.bank||''} ${SI.acct} (${SI.holder||''})`,W-PAD*2-32,`800 22px ${F}`)[0],PAD+16,y+46);
+    x.fillStyle='#1d1a2b';x.font=`800 22px ${F}`;x.fillText(wrap(`${SI.bank||''} ${SI.acct}  예금주 ${SI.holder||''}`,W-PAD*2-32,`800 22px ${F}`)[0],PAD+16,y+46);
     x.font=`600 18px ${F}`;x.fillStyle='#4a4560';x.fillText(wrap(`입금자명: ${(o.who||o.shop||'')}${String(o.tel||'').replace(/\D/g,'').slice(-4)} (성함+연락처 뒤 4자리) · 입금 확인 후 발주 진행`,W-PAD*2-32,`600 18px ${F}`)[0],PAD+16,y+80);y+=130}
   if(memo){x.fillStyle='#fff3c4';x.fillRect(PAD,y,W-PAD*2,46);x.fillStyle='#1d1a2b';x.font=`700 19px ${F}`;x.fillText(wrap('요청사항: '+memo,W-PAD*2-24,`700 19px ${F}`)[0],PAD+12,y+12);y+=60}
   x.fillStyle='#8a849c';x.font=`600 16px ${F}`;x.fillText('주문·배송 조회: playbridge.io.kr',PAD,H-40);
